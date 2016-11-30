@@ -1,0 +1,6 @@
+syntaxnet:
+    ROOT_DIR: /home/mathias/workspace/syntactic_parser/tensorflow_models/syntaxnet
+    PARSER_EVAL: bazel-bin/syntaxnet/parser_eval
+    CONTEXT: syntaxnet/models/parsey_universal/context.pbtxt
+    MODEL: /home/mathias/workspace/syntactic_parser/tensorflow_models/syntaxnet/syntaxnet/models/parsey_universal/French
+    
