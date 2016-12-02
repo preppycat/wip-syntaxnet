@@ -9,9 +9,6 @@ root_dir = config_syntaxnet['ROOT_DIR']
 parser_eval_path = config_syntaxnet['PARSER_EVAL']
 context_path = config_syntaxnet['CONTEXT']
 model_path = config_syntaxnet['MODEL']
-print parser_eval_path
-print root_dir
-print model_path
 
 def open_parser_eval(args):
     return subprocess.Popen(
@@ -21,19 +18,58 @@ def open_parser_eval(args):
         stdout=subprocess.PIPE
     )
 
-def send_input(process, input):
-    process.stdin.write(input.encode('utf8'))
-    process.stdin.write(b"\n\n") # signal end of documents
-    process.stdin.flush()
-    response = b""
 
-    print "START RESPONSE"
-    while True:
-        line = process.stdout.readline()
-        if line.strip() == b"":
-            break
-        response += line
-    return response.decode("utf8")
+# Open the morphological analyzer
+morpho_analyzer = open_parser_eval([
+    "--input=stdin",
+    "--output=stdout-conll",
+    "--hidden_layer_sizes=64",
+    "--arg_prefix=brain_morpher",
+    "--graph_builder=structured",
+    "--task_context=%s" %context_path,
+    "--resource_dir=%s" %model_path,
+    "--model_path=%s/morpher-params" %model_path,
+    "--slim_model",
+    "--batch_size=1024",
+    "--alsologtostderr"
+])
+
+# Open the part of speech tagger
+pos_tagger = open_parser_eval([
+    "--input=stdin-conll",
+    "--output=stdout-conll",
+    "--hidden_layer=64",
+    "--arg_prefix=brain_tagger",
+    "--graph_builder=structured",
+    "--task_context=%s" %context_path,
+    "--resource_dir=%s" %model_path,
+    "--model_path=%s/tagger-params" %model_path,
+    "--slim_model",
+    "--batch_size=1024",
+    "--alsologtostderr"
+
+])
+
+# Open the syntactic dependency parser.
+dependency_parser = open_parser_eval([
+    "--input=stdin-conll",
+    "--output=stdout-conll",
+    "--hidden_layer_sizes=512,512",
+    "--arg_prefix=brain_parser",
+    "--graph_builder=structured",
+    "--task_context=%s" %context_path,
+    "--resource_dir=%s" %model_path,
+    "--model_path=%s/parser-params" %model_path,
+    "--slim_model",
+    "--batch_size=1024",
+    "--alsologtostderr"
+])
+
+def send_input(process, input):
+    stdout, stderr = process.communicate(input.encode('utf8'))
+    print stdout
+    print stderr
+    return stdout.decode("utf8")
 
 
 def split_tokens(parse):
@@ -81,57 +117,6 @@ def parse_sentence(sentence):
 
 if __name__ == '__main__':
     import sys, pprint
-
-    print "LAUNCH MORPHO"
-    # Open the morphological analyzer
-    morpho_analyzer = open_parser_eval([
-        "--input=stdin",
-        "--output=sdtout-conll",
-        "--hidden_layer_sizes=64",
-        "--arg_prefix=brain_morpher",
-        "--graph_builder=structured",
-        "--task_context=%s" %context_path,
-        "--resource_dir=%s" %model_path,
-        "--model_path=%s/morpher-params" %model_path,
-        "--slim_model",
-        "--batch_size=1024",
-        "--alsologtostderr"
-    ])
-    
-    print "LAUNCH POS"
-    # Open the part of speech tagger
-    pos_tagger = open_parser_eval([
-        "--input=stdin-conll",
-        "--output=stdout-conll",
-        "--hidden_layer=64",
-        "--arg_prefix=brain_tagger",
-        "--graph_builder=structured",
-        "--task_context=%s" %context_path,
-        "--resource_dir=%s" %model_path,
-        "--model_path=%s/tagger-params" %model_path,
-        "--slim_model",
-        "--batch_size=1024",
-        "--alsologtostderr"
-
-    ])
-
-    print "LAUNCH DEPENDENCY"
-    # Open the syntactic dependency parser.
-    dependency_parser = open_parser_eval([
-        "--input=stdin-conll",
-        "--output=stdout-conll",
-        "--hidden_layer_sizes=512,512",
-        "--arg_prefix=brain_parser",
-        "--graph_builder=structured",
-        "--task_context=%s" %context_path,
-        "--resource_dir=%s" %model_path,
-        "--model_path=%s/parser-params" %model_path,
-        "--slim_model",
-        "--batch_size=1024",
-        "--alsologtostderr"
-    ])
-
-    time.sleep(10)
-    pprint.pprint(parse_sentence("Un test".strip())['tree'])
+    pprint.pprint(parse_sentence("Une fille descend la rue".strip())['tree'])
 
 
