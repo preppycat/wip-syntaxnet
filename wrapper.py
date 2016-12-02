@@ -1,4 +1,5 @@
 import yaml
+import time
 import subprocess
 from collections import OrderedDict
 
@@ -10,6 +11,7 @@ context_path = config_syntaxnet['CONTEXT']
 model_path = config_syntaxnet['MODEL']
 print parser_eval_path
 print root_dir
+print model_path
 
 def open_parser_eval(args):
     return subprocess.Popen(
@@ -20,68 +22,19 @@ def open_parser_eval(args):
     )
 
 def send_input(process, input):
-    print "HOOOOOOOOOOOOO"
-    print input
-
     process.stdin.write(input.encode('utf8'))
     process.stdin.write(b"\n\n") # signal end of documents
     process.stdin.flush()
     response = b""
+
+    print "START RESPONSE"
     while True:
         line = process.stdout.readline()
-        print "LINE", line
         if line.strip() == b"":
             break
         response += line
-    print response
     return response.decode("utf8")
 
-# Open the morphological analyzer
-morpho_analyzer = open_parser_eval([
-    "--input=stdin",
-    "--output=stdout-conll",
-    "--hidden_layer_sizes=64",
-    "--arg_prefix=brain_morpher",
-    "--graph_builder=structured",
-    "--task_context=%s" %context_path,
-    "--ressource_dir=%s" %model_path,
-    "--model_path=%s/morpher-params" %model_path,
-    "--slim_model",
-    "--batch_size=1024",
-    "--alsologtostderr"
-])
-
-
-# Open the part of speech tagger
-pos_tagger = open_parser_eval([
-    "--input=stdin-conll",
-    "--output=stdout-conll",
-    "--hidden_layer=64",
-    "--arg_prefix=brain_tagger",
-    "--graph_builder=structured",
-    "--task_context=%s" %context_path,
-    "--resource_dir=%s" %model_path,
-    "--model_path=%s/tagger-params" %model_path,
-    "--slim_model",
-    "--batch_size=1024",
-    "--alsologtostderr"
-
-])
-
-# Open the syntactic dependency parser.
-dependency_parser = open_parser_eval([
-    "--input=stdin-conll",
-    "--output=stdout-conll",
-    "--hidden_layer_sizes=512,512",
-    "--arg_prefix=brain_parser",
-    "--graph_builder=structured",
-    "--task_context=%s" %context_path,
-    "--resource_dir=%s" %model_path,
-    "--model_path=%s/parser-params" %model_path,
-    "--slim_model",
-    "--batch_size=1024",
-    "--alsologtostderr"
-])
 
 def split_tokens(parse):
     
@@ -101,10 +54,10 @@ def split_tokens(parse):
 
     return [format_token(line) for line in parse.strip().split('\n')]
 
-def parse_sentence(sentence):   
+def parse_sentence(sentence):
     if "\n" in sentence or "\r"in sentence:
         raise ValueError()
-
+    
     # do morpgological analyze
     morpho_form = send_input(morpho_analyzer, sentence + "\n")
     
@@ -128,6 +81,57 @@ def parse_sentence(sentence):
 
 if __name__ == '__main__':
     import sys, pprint
-    pprint.pprint(parse_sentence(sys.stdin.read().strip())['tree'])
+
+    print "LAUNCH MORPHO"
+    # Open the morphological analyzer
+    morpho_analyzer = open_parser_eval([
+        "--input=stdin",
+        "--output=sdtout-conll",
+        "--hidden_layer_sizes=64",
+        "--arg_prefix=brain_morpher",
+        "--graph_builder=structured",
+        "--task_context=%s" %context_path,
+        "--resource_dir=%s" %model_path,
+        "--model_path=%s/morpher-params" %model_path,
+        "--slim_model",
+        "--batch_size=1024",
+        "--alsologtostderr"
+    ])
+    
+    print "LAUNCH POS"
+    # Open the part of speech tagger
+    pos_tagger = open_parser_eval([
+        "--input=stdin-conll",
+        "--output=stdout-conll",
+        "--hidden_layer=64",
+        "--arg_prefix=brain_tagger",
+        "--graph_builder=structured",
+        "--task_context=%s" %context_path,
+        "--resource_dir=%s" %model_path,
+        "--model_path=%s/tagger-params" %model_path,
+        "--slim_model",
+        "--batch_size=1024",
+        "--alsologtostderr"
+
+    ])
+
+    print "LAUNCH DEPENDENCY"
+    # Open the syntactic dependency parser.
+    dependency_parser = open_parser_eval([
+        "--input=stdin-conll",
+        "--output=stdout-conll",
+        "--hidden_layer_sizes=512,512",
+        "--arg_prefix=brain_parser",
+        "--graph_builder=structured",
+        "--task_context=%s" %context_path,
+        "--resource_dir=%s" %model_path,
+        "--model_path=%s/parser-params" %model_path,
+        "--slim_model",
+        "--batch_size=1024",
+        "--alsologtostderr"
+    ])
+
+    time.sleep(10)
+    pprint.pprint(parse_sentence("Un test".strip())['tree'])
 
 
