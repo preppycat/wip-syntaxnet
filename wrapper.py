@@ -1,3 +1,5 @@
+# coding:utf8
+
 import yaml
 import time
 import subprocess
@@ -15,7 +17,8 @@ def open_parser_eval(args):
         [parser_eval_path] + args,
         cwd = root_dir,
         stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE # Only to avoid getting it in stdin
     )
 
 
@@ -67,8 +70,6 @@ dependency_parser = open_parser_eval([
 
 def send_input(process, input):
     stdout, stderr = process.communicate(input.encode('utf8'))
-    print stdout
-    print stderr
     return stdout.decode("utf8")
 
 
@@ -91,8 +92,6 @@ def split_tokens(parse):
     return [format_token(line) for line in parse.strip().split('\n')]
 
 def parse_sentence(sentence):
-    if "\n" in sentence or "\r"in sentence:
-        raise ValueError()
     
     # do morpgological analyze
     morpho_form = send_input(morpho_analyzer, sentence + "\n")
@@ -117,6 +116,6 @@ def parse_sentence(sentence):
 
 if __name__ == '__main__':
     import sys, pprint
-    pprint.pprint(parse_sentence("Une fille descend la rue".strip())['tree'])
+    pprint.pprint(parse_sentence(u"Descend maintenant !".strip())['tree'])
 
 
