@@ -18,11 +18,21 @@ On utilise ` bazel test --linkopt=-headerpad_max_install_names syntaxnet/... uti
 
 ## Mise en place du modèle pour le français
 
-
+Une fois SyntaxNet fonctionnel en anglais, l'utilisation de la version anglaise est assez simple.
+Suivre le tuto : https://github.com/tensorflow/models/blob/master/syntaxnet/universal.md
 
 ## Installation du wrapper
 
-
-
+* Cloner le repo : `git clone https://github.com/short-edition/syntaxnet-wrapper.git`
+* Créer le fichier de configuration `config.yml` en s'inspirant de `config.yml.dist`. Notez que les chemins `PARSER_EVAL`, `CONTEXT` et `MODEL` sont des chemins relatifs par rapport à `ROOT_DIR` qui est le `CWD` des processus lancés.
+* Les tests unitaires `./syntaxnet-wrapper python -m unittest discover .` doivent fonctionner
 
 ## Utilisation du wrapper
+
+**Exemple d'utilisation**
+
+`echo "Une fille descend la rue dans sa voiture" | python wrapper.py`
+
+**API**
+
+La package met à disposition deux fonctions principales, étant `parse_sentence` et `parse_sentences`. Si plusieurs sentences sont à parser d'un coup, il est important d'utiliser `parse_sentences`. En effet, le processus SyntaxNet s'arrête à chaque analyse, que ce soit 1 ou 10 phrases. Il faut donc l'utiliser au mieux. Le lancement des process nécessaires est long et couteux en ressources.
