@@ -1,4 +1,9 @@
 # coding:utf8
+"""
+Wrapper permettant l'utilisation de SyntaxNet en python
+Lance trois processus nécessaire à l'analyse de dépendance syntaxique en Français pour chaque analyse
+Si plusieurs phrases sont à analyser, elles sont toutes envoyées d'un coup aux processes et le résultat est une liste d'arbre
+"""
 
 import yaml
 import time
@@ -13,6 +18,7 @@ context_path = config_syntaxnet['CONTEXT']
 model_path = config_syntaxnet['MODEL']
 
 def open_parser_eval(args):
+    # Lance le processus parser eval de syntaxnet avec les arguments voulus
     return subprocess.Popen(
         [parser_eval_path] + args,
         cwd = root_dir,
@@ -69,6 +75,7 @@ dependency_parser = open_parser_eval([
 ])
 
 def send_input(process, input):
+    # communicate attend la fin du processus, une fois cette fonction appelé le processus est donc terminé.
     stdout, stderr = process.communicate(input.encode('utf8'))
     return stdout.decode("utf8")
 
@@ -137,6 +144,7 @@ def transform_tree(dependency_parse, sentence):
     return tokens[0]
 
 if __name__ == '__main__':
+    # Exemple d'utilisation avec l'entré standard
     import sys, pprint
     pprint.pprint(parse_sentence(sys.stdin.read().strip())['tree'])
 
