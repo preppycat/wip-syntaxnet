@@ -27,52 +27,53 @@ def open_parser_eval(args):
         stderr=subprocess.PIPE # Only to avoid getting it in stdin
     )
 
+def start_processes():
+    # Open the morphological analyzer
+    morpho_analyzer = open_parser_eval([
+        "--input=stdin",
+        "--output=stdout-conll",
+        "--hidden_layer_sizes=64",
+        "--arg_prefix=brain_morpher",
+        "--graph_builder=structured",
+        "--task_context=%s" %context_path,
+        "--resource_dir=%s" %model_path,
+        "--model_path=%s/morpher-params" %model_path,
+        "--slim_model",
+        "--batch_size=1024",
+        "--alsologtostderr"
+    ])
 
-# Open the morphological analyzer
-morpho_analyzer = open_parser_eval([
-    "--input=stdin",
-    "--output=stdout-conll",
-    "--hidden_layer_sizes=64",
-    "--arg_prefix=brain_morpher",
-    "--graph_builder=structured",
-    "--task_context=%s" %context_path,
-    "--resource_dir=%s" %model_path,
-    "--model_path=%s/morpher-params" %model_path,
-    "--slim_model",
-    "--batch_size=1024",
-    "--alsologtostderr"
-])
+    # Open the part of speech tagger
+    pos_tagger = open_parser_eval([
+        "--input=stdin-conll",
+        "--output=stdout-conll",
+        "--hidden_layer=64",
+        "--arg_prefix=brain_tagger",
+        "--graph_builder=structured",
+        "--task_context=%s" %context_path,
+        "--resource_dir=%s" %model_path,
+        "--model_path=%s/tagger-params" %model_path,
+        "--slim_model",
+        "--batch_size=1024",
+        "--alsologtostderr"
 
-# Open the part of speech tagger
-pos_tagger = open_parser_eval([
-    "--input=stdin-conll",
-    "--output=stdout-conll",
-    "--hidden_layer=64",
-    "--arg_prefix=brain_tagger",
-    "--graph_builder=structured",
-    "--task_context=%s" %context_path,
-    "--resource_dir=%s" %model_path,
-    "--model_path=%s/tagger-params" %model_path,
-    "--slim_model",
-    "--batch_size=1024",
-    "--alsologtostderr"
+    ])
 
-])
-
-# Open the syntactic dependency parser.
-dependency_parser = open_parser_eval([
-    "--input=stdin-conll",
-    "--output=stdout-conll",
-    "--hidden_layer_sizes=512,512",
-    "--arg_prefix=brain_parser",
-    "--graph_builder=structured",
-    "--task_context=%s" %context_path,
-    "--resource_dir=%s" %model_path,
-    "--model_path=%s/parser-params" %model_path,
-    "--slim_model",
-    "--batch_size=1024",
-    "--alsologtostderr"
-])
+    # Open the syntactic dependency parser.
+    dependency_parser = open_parser_eval([
+        "--input=stdin-conll",
+        "--output=stdout-conll",
+        "--hidden_layer_sizes=512,512",
+        "--arg_prefix=brain_parser",
+        "--graph_builder=structured",
+        "--task_context=%s" %context_path,
+        "--resource_dir=%s" %model_path,
+        "--model_path=%s/parser-params" %model_path,
+        "--slim_model",
+        "--batch_size=1024",
+        "--alsologtostderr"
+    ])
+    return morpho_analyzer, pos_tagger, dependency_parser
 
 def send_input(process, input):
     # communicate attend la fin du processus, une fois cette fonction appelé le processus est donc terminé.
@@ -99,7 +100,8 @@ def split_tokens(parse):
     return [format_token(line) for line in parse.strip().split('\n')]
 
 def parse_sentence(sentence):
-    
+    morpho_analyzer, pos_tagger, dependency_parser = start_processes()
+
     # do morpgological analyze
     morpho_form = send_input(morpho_analyzer, sentence + "\n")
     
@@ -115,6 +117,8 @@ def parse_sentence(sentence):
 def parse_sentences(sentences):
     if type(sentences) is not list:
         raise ValueError("sentences must be given as a list object")
+
+    morpho_analyzer, pos_tagger, dependency_parser = start_processes()
 
     joined_sentences = "\n".join(sentences)
     

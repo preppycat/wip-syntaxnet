@@ -23,7 +23,7 @@ class TestWrapper(TestCase):
                 "--batch_size=1024",
                 "--alsologtostderr"
         ])
-
+        """
         # Open the part of speech tagger
         self.test_pos_tagger = wrapper.open_parser_eval([
                 "--input=stdin-conll",
@@ -54,7 +54,7 @@ class TestWrapper(TestCase):
                 "--batch_size=1024",
                 "--alsologtostderr"
         ])
-
+        """
     def test_send_input(self):
         result = """1\tCet\t_\t_\t_\tfPOS=PROPN++\t0\t_\t_\t_
 2\tinput\t_\t_\t_\tfPOS=PROPN++\t0\t_\t_\t_
@@ -74,9 +74,6 @@ class TestWrapper(TestCase):
         self.assertEqual(result, wrapper.split_tokens(input_tokens))
 
     def test_parse_sentence(self):
-        # Replace morpho analyzer with test one
-        wrapper.morpho_analyzer = self.test_morpho_analyzer
-
         input_sentence = "Cet phrase est un test"
         result = OrderedDict([
             ('sentence', 'Cet phrase est un test'), 
@@ -125,12 +122,6 @@ class TestWrapper(TestCase):
         self.assertEqual(result, wrapper.parse_sentence(input_sentence))
 
     def test_parse_sentences(self):
-
-        # replace processes with test one
-        wrapper.morpho_analyzer = self.test_morpho_analyzer
-        wrapper.pos_tagger = self.test_pos_tagger
-        wrapper.dependency_parser = self.test_dependency_parser
-
         input_sentences = [u"Une première phrase de test", u"Une expression est secondaire"]
         result = [OrderedDict([('sentence', u'Une premi\xe8re phrase de test'), ('tree', OrderedDict([(u'ROOT', [OrderedDict([('index', 3), ('token', u'phrase'), ('label', u'NOUN'), ('pos', u'_'), ('tree', OrderedDict([(u'det', [OrderedDict([('index', 1), ('token', u'Une'), ('label', u'DET'), ('pos', u'_')])]), (u'amod', [OrderedDict([('index', 2), ('token', u'premi\xe8re'), ('label', u'ADJ'), ('pos', u'_')])]), (u'nmod', [OrderedDict([('index', 5), ('token', u'test'), ('label', u'NOUN'), ('pos', u'_'), ('tree', OrderedDict([(u'case', [OrderedDict([('index', 4), ('token', u'de'), ('label', u'ADP'), ('pos', u'_')])])]))])])]))])])]))]), OrderedDict([('sentence', u'Une expression est secondaire'), ('tree', OrderedDict([(u'ROOT', [OrderedDict([('index', 4), ('token', u'secondaire'), ('label', u'ADJ'), ('pos', u'_'), ('tree', OrderedDict([(u'nsubj', [OrderedDict([('index', 2), ('token', u'expression'), ('label', u'NOUN'), ('pos', u'_'), ('tree', OrderedDict([(u'det', [OrderedDict([('index', 1), ('token', u'Une'), ('label', u'DET'), ('pos', u'_')])])]))])]), (u'cop', [OrderedDict([('index', 3), ('token', u'est'), ('label', u'VERB'), ('pos', u'_')])])]))])])]))])]
         self.assertEqual(result, list(wrapper.parse_sentences(input_sentences)))
