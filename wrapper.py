@@ -102,6 +102,28 @@ def parse_sentence(sentence):
     # Do syntaxe parsing
     dependency_parse = send_input(dependency_parser, pos_tags)
     
+    dependency_tree = transform_tree(dependency_parse, sentence)
+    return dependency_tree
+
+def parse_sentences(sentences):
+    if type(sentences) is not list:
+        raise ValueError("sentences must be given as a list object")
+
+    joined_sentences = "\n".join(sentences)
+    
+    # do morpgological analyze
+    morpho_form = send_input(morpho_analyzer, joined_sentences + "\n")
+    
+    # do pos tagging
+    pos_tags = send_input(pos_tagger, morpho_form)
+    
+    # Do syntaxe parsing
+    dependency_parses = send_input(dependency_parser, pos_tags)
+ 
+    for idx_sentence, dependency_parse in enumerate(dependency_parses.split('\n\n')[:-1]):
+        yield transform_tree(dependency_parse, sentences[idx_sentence])
+
+def transform_tree(dependency_parse, sentence):
     # Make a tree
     dependency_parse = split_tokens(dependency_parse)
     tokens = {token['index']: token for token in dependency_parse}
@@ -116,6 +138,6 @@ def parse_sentence(sentence):
 
 if __name__ == '__main__':
     import sys, pprint
-    pprint.pprint(parse_sentence(u"Descend maintenant !".strip())['tree'])
+    pprint.pprint(parse_sentence(sys.stdin.read().strip())['tree'])
 
 
