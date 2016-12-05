@@ -5,12 +5,11 @@ Lance trois processus nécessaire à l'analyse de dépendance syntaxique en Fran
 Si plusieurs phrases sont à analyser, elles sont toutes envoyées d'un coup aux processes et le résultat est une liste d'arbre
 """
 
-import yaml
-import time
-import subprocess
+import yaml, time, subprocess
+import os.path as path
 from collections import OrderedDict
 
-config_file = yaml.load(open('config.yml'))
+config_file = yaml.load(open(path.join(path.dirname(__file__), "../config.yml")))
 config_syntaxnet = config_file['syntaxnet']
 root_dir = config_syntaxnet['ROOT_DIR']
 parser_eval_path = config_syntaxnet['PARSER_EVAL']
