@@ -102,7 +102,7 @@ protobuf==3.0.0b2
 (virtualenv)$ pip freeze | grep mock
 ```
 
-### installation des pré-requis si besoin
+### Installation des pré-requis si besoin
 
   - pip
 ```bash
@@ -110,7 +110,7 @@ $ sudo apt-get install python-pip
 ```
   - bazel
 ```bash
-# On s'assure que bazel est n'est pas présente sur le système
+# On s'assure que bazel n'est pas présent sur le système
 $ sudo apt-get purge bazel
 $ sudo apt-get autoremove
 
@@ -171,10 +171,18 @@ INFO: All external dependencies fetched successfully.
 ... Loading .... cleaning ... and compiling.... prone to warning which are normal .... might take a while ... (25 minutes on my i3 ubuntu 16)
 ```
 
+#### Problème connu
+
+  - Problème de droit
+```bash
+gcc unrecognized option -h ...
+```
+
 ### Mise en place du modèle FR
+
 https://github.com/tensorflow/models/blob/master/syntaxnet/universal.md
 ```bash
-(virtualenv)/tensorflow_models/syntaxnet/syntaxnet/models/parsey_universal$ wet http://download.tensorflow.org/models/parsey_universal/French.zip
+(virtualenv)/tensorflow_models/syntaxnet/syntaxnet/models/parsey_universal$ wget http://download.tensorflow.org/models/parsey_universal/French.zip
 (virtualenv)/tensorflow_models/syntaxnet/syntaxnet/models/parsey_universal$ unzip French.zip
 ```
 ```bash
