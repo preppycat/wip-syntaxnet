@@ -3,7 +3,7 @@
 from unittest2 import TestCase
 from collections import OrderedDict
 
-import wrapper
+from syntaxnet_wrapper import wrapper
 
 class TestWrapper(TestCase):
 
