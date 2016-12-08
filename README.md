@@ -59,7 +59,7 @@ Python 2.7.9 (default, Jun 24 2016, 11:14:55)
 [GCC 4.8.4] on linux2
 Type "help", "copyright", "credits" or "license" for more information.
 ```
-  - gcc 4.8 (5 non fonctionnel pour sûr)
+  - gcc 4.8
 ```bash
 $ gcc -v
 gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3)
