@@ -23,38 +23,7 @@ class TestWrapper(TestCase):
                 "--batch_size=1024",
                 "--alsologtostderr"
         ])
-        """
-        # Open the part of speech tagger
-        self.test_pos_tagger = wrapper.open_parser_eval([
-                "--input=stdin-conll",
-                "--output=stdout-conll",
-                "--hidden_layer=64",
-                "--arg_prefix=brain_tagger",
-                "--graph_builder=structured",
-                "--task_context=%s" %wrapper.context_path,
-                "--resource_dir=%s" %wrapper.model_path,
-                "--model_path=%s/tagger-params" %wrapper.model_path,
-                "--slim_model",
-                "--batch_size=1024",
-                "--alsologtostderr"
-
-        ])
-
-        # Open the syntactic dependency parser.
-        self.test_dependency_parser = wrapper.open_parser_eval([
-                "--input=stdin-conll",
-                "--output=stdout-conll",
-                "--hidden_layer_sizes=512,512",
-                "--arg_prefix=brain_parser",
-                "--graph_builder=structured",
-                "--task_context=%s" %wrapper.context_path,
-                "--resource_dir=%s" %wrapper.model_path,
-                "--model_path=%s/parser-params" %wrapper.model_path,
-                "--slim_model",
-                "--batch_size=1024",
-                "--alsologtostderr"
-        ])
-        """
+    
     def test_send_input(self):
         result = """1\tCet\t_\t_\t_\tfPOS=PROPN++\t0\t_\t_\t_
 2\tinput\t_\t_\t_\tfPOS=PROPN++\t0\t_\t_\t_
