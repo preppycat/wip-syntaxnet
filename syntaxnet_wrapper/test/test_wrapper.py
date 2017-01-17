@@ -7,10 +7,10 @@ from syntaxnet_wrapper import wrapper
 
 class TestWrapper(TestCase):
 
-    def setUp(self):
+    def test_send_input(self):
         # Open processes for test purpose
         # Open the morphological analyzer
-        self.test_morpho_analyzer = wrapper.open_parser_eval([
+        test_morpho_analyzer = wrapper.open_parser_eval([
                 "--input=stdin",
                 "--output=stdout-conll",
                 "--hidden_layer_sizes=64",
@@ -23,15 +23,13 @@ class TestWrapper(TestCase):
                 "--batch_size=1024",
                 "--alsologtostderr"
         ])
-    
-    def test_send_input(self):
         result = """1\tCet\t_\t_\t_\tfPOS=PROPN++\t0\t_\t_\t_
 2\tinput\t_\t_\t_\tfPOS=PROPN++\t0\t_\t_\t_
 3\test\t_\t_\t_\tMood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|fPOS=VERB++\t0\t_\t_\t_
 4\tun\t_\t_\t_\tDefinite=Ind|Gender=Masc|Number=Sing|PronType=Dem|fPOS=DET++\t0\t_\t_\t_
 5\ttest\t_\t_\t_\tGender=Masc|Number=Sing|fPOS=NOUN++\t0\t_\t_\t_\n\n"""
 
-        self.assertEqual(result, wrapper.send_input(self.test_morpho_analyzer, "Cet input est un test"))
+        self.assertEqual(result, wrapper.send_input(test_morpho_analyzer, "Cet input est un test"))
 
     def test_split_tokens(self):
         input_tokens = '1\ttoken1\tunknown11\tlabel1\tpos1\tunknown21\t1\trelation1\tunknown31\tunknown41\n2\ttoken2\tunknown12\tlabel2\tpos2\tunknown22\t2\trelation2\tunknown32\tunknown42\t'
@@ -104,3 +102,13 @@ class TestWrapper(TestCase):
         input_sentences = [u"Une première phrase de test", u"Une expression est secondaire"]
         result = [{0: OrderedDict([('sentence', u'Une premi\xe8re phrase de test')]), 1: OrderedDict([('index', 1), ('token', u'Une'), ('label', u'DET'), ('pos', u'_'), ('feats', u'Definite=Ind|Gender=Fem|Number=Sing|PronType=Dem|fPOS=DET++')]), 2: OrderedDict([('index', 2), ('token', u'premi\xe8re'), ('label', u'ADJ'), ('pos', u'_'), ('feats', u'Gender=Fem|Number=Sing|fPOS=ADJ++')]), 3: OrderedDict([('index', 3), ('token', u'phrase'), ('label', u'NOUN'), ('pos', u'_'), ('feats', u'Gender=Fem|Number=Sing|fPOS=NOUN++')]), 4: OrderedDict([('index', 4), ('token', u'de'), ('label', u'ADP'), ('pos', u'_'), ('feats', u'fPOS=ADP++')]), 5: OrderedDict([('index', 5), ('token', u'test'), ('label', u'NOUN'), ('pos', u'_'), ('feats', u'Gender=Masc|Number=Sing|fPOS=NOUN++')])}, {0: OrderedDict([('sentence', u'Une expression est secondaire')]), 1: OrderedDict([('index', 1), ('token', u'Une'), ('label', u'DET'), ('pos', u'_'), ('feats', u'Definite=Ind|Gender=Fem|Number=Sing|PronType=Dem|fPOS=DET++')]), 2: OrderedDict([('index', 2), ('token', u'expression'), ('label', u'NOUN'), ('pos', u'_'), ('feats', u'Gender=Fem|Number=Sing|fPOS=NOUN++')]), 3: OrderedDict([('index', 3), ('token', u'est'), ('label', u'VERB'), ('pos', u'_'), ('feats', u'Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|fPOS=VERB++')]), 4: OrderedDict([('index', 4), ('token', u'secondaire'), ('label', u'ADJ'), ('pos', u'_'), ('feats', u'Gender=Fem|Number=Sing|fPOS=ADJ++')])}]
         self.assertEqual(result, list(wrapper.tag_sentences(input_sentences)))
+
+    def test_morpho_sentence(self):
+        input_sentence = "Cet phrase est un test"
+        result = {0: OrderedDict([('sentence', 'Cet phrase est un test')]), 1: OrderedDict([('index', 1), ('token', u'Cet'), ('feats', u'Gender=Fem|Number=Sing|fPOS=DET++')]), 2: OrderedDict([('index', 2), ('token', u'phrase'), ('feats', u'Gender=Fem|Number=Sing|fPOS=NOUN++')]), 3: OrderedDict([('index', 3), ('token', u'est'), ('feats', u'Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|fPOS=VERB++')]), 4: OrderedDict([('index', 4), ('token', u'un'), ('feats', u'Definite=Ind|Gender=Masc|Number=Sing|PronType=Dem|fPOS=DET++')]), 5: OrderedDict([('index', 5), ('token', u'test'), ('feats', u'Gender=Masc|Number=Sing|fPOS=NOUN++')])}
+        self.assertEqual(result, wrapper.morpho_sentence(input_sentence))
+
+    def test_morpho_sentences(self):
+        input_sentences = [u"Une première phrase de test", u"Une expression est secondaire"]
+        results = [{0: OrderedDict([('sentence', u'Une premi\xe8re phrase de test')]), 1: OrderedDict([('index', 1), ('token', u'Une'), ('feats', u'Definite=Ind|Gender=Fem|Number=Sing|PronType=Dem|fPOS=DET++')]), 2: OrderedDict([('index', 2), ('token', u'premi\xe8re'), ('feats', u'Gender=Fem|Number=Sing|fPOS=ADJ++')]), 3: OrderedDict([('index', 3), ('token', u'phrase'), ('feats', u'Gender=Fem|Number=Sing|fPOS=NOUN++')]), 4: OrderedDict([('index', 4), ('token', u'de'), ('feats', u'fPOS=ADP++')]), 5: OrderedDict([('index', 5), ('token', u'test'), ('feats', u'Gender=Masc|Number=Sing|fPOS=NOUN++')])}, {0: OrderedDict([('sentence', u'Une expression est secondaire')]), 1: OrderedDict([('index', 1), ('token', u'Une'), ('feats', u'Definite=Ind|Gender=Fem|Number=Sing|PronType=Dem|fPOS=DET++')]), 2: OrderedDict([('index', 2), ('token', u'expression'), ('feats', u'Gender=Fem|Number=Sing|fPOS=NOUN++')]), 3: OrderedDict([('index', 3), ('token', u'est'), ('feats', u'Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|fPOS=VERB++')]), 4: OrderedDict([('index', 4), ('token', u'secondaire'), ('feats', u'Gender=Fem|Number=Sing|fPOS=ADJ++')])}]
+        self.assertEqual(results, list(wrapper.morpho_sentences(input_sentences)))

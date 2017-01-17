@@ -96,6 +96,69 @@ def split_tokens(parse, fields_to_del=['lemma', 'feats', 'enhanced_dependency', 
 
     return [format_token(line) for line in parse.strip().split('\n')]
 
+def morpho_sentence(sentence):
+    morpho_analyzer, _, _ = start_processes()
+    
+    # do morpgological analyze
+    morpho_form = send_input(morpho_analyzer, sentence + "\n")
+
+    morpho_tree = transform_morpho(morpho_form, sentence)
+    return morpho_tree
+
+def morpho_sentences(sentences):
+    morpho_analyzer, _, _ = start_processes()
+
+    joined_sentences = "\n".join(sentences)
+    
+    # do morpgological analyze
+    morpho_forms = send_input(morpho_analyzer, joined_sentences + "\n")
+
+    for idx_sentence, morpho_form in enumerate(morpho_forms.split('\n\n')[:-1]):
+        yield transform_morpho(morpho_form, sentences[idx_sentence])
+
+def transform_morpho(to_parse, sentence):
+    # Make a tree from pos tagging
+    to_parse = split_tokens(to_parse, fields_to_del=['lemma', 'label', 'pos', 'enhanced_dependency', 'misc', 'relation', 'parent'])
+    tokens = {token['index']: token for token in to_parse}
+    tokens[0] = OrderedDict([("sentence", sentence)])
+    return tokens
+
+def tag_sentence(sentence):
+    morpho_analyzer, pos_tagger, _  = start_processes()
+
+    # do morpgological analyze
+    morpho_form = send_input(morpho_analyzer, sentence + "\n")
+    
+    # do pos tagging
+    pos_tags = send_input(pos_tagger, morpho_form)
+    
+    pos_tree = transform_tag(pos_tags, sentence)
+    return pos_tree
+
+def tag_sentences(sentences):
+    if type(sentences) is not list:
+        raise ValueError("sentences must be given as a list object")
+
+    morpho_analyzer, pos_tagger, _ = start_processes()
+
+    joined_sentences = "\n".join(sentences)
+    
+    # do morpgological analyze
+    morpho_form = send_input(morpho_analyzer, joined_sentences + "\n")
+    
+    # do pos tagging
+    pos_tags = send_input(pos_tagger, morpho_form)
+    
+    for idx_sentence, pos_tag in enumerate(pos_tags.split('\n\n')[:-1]):
+        yield transform_tag(pos_tag, sentences[idx_sentence])
+
+def transform_tag(to_parse, sentence):
+    # Make a tree from pos tagging
+    to_parse = split_tokens(to_parse, fields_to_del=['lemma', 'enhanced_dependency', 'misc', 'relation', 'parent'])
+    tokens = {token['index']: token for token in to_parse}
+    tokens[0] = OrderedDict([("sentence", sentence)])
+    return tokens
+
 def parse_sentence(sentence):
     morpho_analyzer, pos_tagger, dependency_parser = start_processes()
 
@@ -110,19 +173,6 @@ def parse_sentence(sentence):
     
     dependency_tree = transform_dependency_tree(dependency_parse, sentence)
     return dependency_tree
-
-def tag_sentence(sentence):
-    morpho_analyzer, pos_tagger, dependency_parser = start_processes()
-
-    # do morpgological analyze
-    morpho_form = send_input(morpho_analyzer, sentence + "\n")
-    
-    # do pos tagging
-    pos_tags = send_input(pos_tagger, morpho_form)
-    
-    pos_tree = transform_tag(pos_tags, sentence)
-    return pos_tree
-    
 
 def parse_sentences(sentences):
     if type(sentences) is not list:
@@ -144,23 +194,6 @@ def parse_sentences(sentences):
     for idx_sentence, dependency_parse in enumerate(dependency_parses.split('\n\n')[:-1]):
         yield transform_dependency_tree(dependency_parse, sentences[idx_sentence])
 
-def tag_sentences(sentences):
-    if type(sentences) is not list:
-        raise ValueError("sentences must be given as a list object")
-
-    morpho_analyzer, pos_tagger, dependency_parser = start_processes()
-
-    joined_sentences = "\n".join(sentences)
-    
-    # do morpgological analyze
-    morpho_form = send_input(morpho_analyzer, joined_sentences + "\n")
-    
-    # do pos tagging
-    pos_tags = send_input(pos_tagger, morpho_form)
-    
-    for idx_sentence, pos_tag in enumerate(pos_tags.split('\n\n')[:-1]):
-        yield transform_tag(pos_tag, sentences[idx_sentence])
-
 def transform_dependency_tree(to_parse, sentence):
     # Make a tree from dependency parsing
     to_parse = split_tokens(to_parse)
@@ -173,13 +206,6 @@ def transform_dependency_tree(to_parse, sentence):
         del token['relation']
 
     return tokens[0]
-
-def transform_tag(to_parse, sentence):
-    # Make a tree from pos tagging
-    to_parse = split_tokens(to_parse, fields_to_del=['lemma', 'enhanced_dependency', 'misc', 'relation', 'parent'])
-    tokens = {token['index']: token for token in to_parse}
-    tokens[0] = OrderedDict([("sentence", sentence)])
-    return tokens
 
 if __name__ == '__main__':
     # Exemple d'utilisation avec l'entré standard
