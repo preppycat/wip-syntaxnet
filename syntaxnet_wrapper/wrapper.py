@@ -1,4 +1,4 @@
-# coding:utf8
+#i coding:utf8
 """
 Wrapper permettant l'utilisation de SyntaxNet en python
 Lance trois processus nécessaire à l'analyse de dépendance syntaxique en Français pour chaque analyse
@@ -88,8 +88,11 @@ def split_tokens(parse, fields_to_del=['lemma', 'feats', 'enhanced_dependency', 
             ['index', 'token', 'lemma', 'label', 'pos', 'feats', 'parent', 'relation', 'enhanced_dependency', 'misc'],
             line.split('\t')
         ))
-        x['index'] = int(x['index'])
-        x['parent'] = int(x['parent'])
+        if x['index']:
+            x['index'] = int(x['index'])
+        if x['parent']:
+            x['parent'] = int(x['parent'])
+
         for field in fields_to_del:
             del x[field]
         return x
