@@ -26,52 +26,58 @@ def open_parser_eval(args):
         stderr=subprocess.PIPE # Only to avoid getting it in stdin
     )
 
-def start_processes():
+def start_processes(process_to_start=['morpho', 'pos', 'dependency']):
     # Open the morphological analyzer
-    morpho_analyzer = open_parser_eval([
-        "--input=stdin",
-        "--output=stdout-conll",
-        "--hidden_layer_sizes=64",
-        "--arg_prefix=brain_morpher",
-        "--graph_builder=structured",
-        "--task_context=%s" %context_path,
-        "--resource_dir=%s" %model_path,
-        "--model_path=%s/morpher-params" %model_path,
-        "--slim_model",
-        "--batch_size=1024",
-        "--alsologtostderr"
-    ])
+    morpho_analyzer = None
+    pos_tagger = None
+    dependency_parser = None
 
-    # Open the part of speech tagger
-    pos_tagger = open_parser_eval([
-        "--input=stdin-conll",
-        "--output=stdout-conll",
-        "--hidden_layer=64",
-        "--arg_prefix=brain_tagger",
-        "--graph_builder=structured",
-        "--task_context=%s" %context_path,
-        "--resource_dir=%s" %model_path,
-        "--model_path=%s/tagger-params" %model_path,
-        "--slim_model",
-        "--batch_size=1024",
-        "--alsologtostderr"
+    if 'morpho' in process_to_start:
+	    morpho_analyzer = open_parser_eval([
+		"--input=stdin",
+		"--output=stdout-conll",
+		"--hidden_layer_sizes=64",
+		"--arg_prefix=brain_morpher",
+		"--graph_builder=structured",
+		"--task_context=%s" %context_path,
+		"--resource_dir=%s" %model_path,
+		"--model_path=%s/morpher-params" %model_path,
+		"--slim_model",
+		"--batch_size=1024",
+		"--alsologtostderr"
+	    ])
 
-    ])
+    if 'pos' in process_to_start:
+	    # Open the part of speech tagger
+	    pos_tagger = open_parser_eval([
+		"--input=stdin-conll",
+		"--output=stdout-conll",
+		"--hidden_layer=64",
+		"--arg_prefix=brain_tagger",
+		"--graph_builder=structured",
+		"--task_context=%s" %context_path,
+		"--resource_dir=%s" %model_path,
+		"--model_path=%s/tagger-params" %model_path,
+		"--slim_model",
+		"--batch_size=1024",
+		"--alsologtostderr"
 
-    # Open the syntactic dependency parser.
-    dependency_parser = open_parser_eval([
-        "--input=stdin-conll",
-        "--output=stdout-conll",
-        "--hidden_layer_sizes=512,512",
-        "--arg_prefix=brain_parser",
-        "--graph_builder=structured",
-        "--task_context=%s" %context_path,
-        "--resource_dir=%s" %model_path,
-        "--model_path=%s/parser-params" %model_path,
-        "--slim_model",
-        "--batch_size=1024",
-        "--alsologtostderr"
-    ])
+	    ])
+    if 'dependency' in process_to_start:
+	    # Open the syntactic dependency parser.
+	    dependency_parser = open_parser_eval([
+		"--input=stdin-conll",
+		"--output=stdout-conll",
+		"--hidden_layer_sizes=512,512",
+		"--arg_prefix=brain_parser",
+		"--graph_builder=structured",
+		"--task_context=%s" %context_path,
+		"--resource_dir=%s" %model_path,
+		"--model_path=%s/parser-params" %model_path,
+		"--slim_model",
+		"--batch_size=1024",
+		"--alsologtostderr"
+	    ])
     return morpho_analyzer, pos_tagger, dependency_parser
 
 def send_input(process, input):
@@ -100,13 +106,12 @@ def split_tokens(parse, fields_to_del=['lemma', 'feats', 'enhanced_dependency', 
     return [format_token(line) for line in parse.strip().split('\n')]
 
 def morpho_sentence(sentence):
-    morpho_analyzer, _, _ = start_processes()
-    
+    morpho_analyzer, _, _ = start_processes(process_to_start=['morpho'])
     # do morpgological analyze
     return send_input(morpho_analyzer, sentence + "\n")
 
 def morpho_sentences(sentences):
-    morpho_analyzer, _, _ = start_processes()
+    morpho_analyzer, _, _ = start_processes(process_to_start=['morpho'])
 
     joined_sentences = "\n".join(sentences)
     
@@ -120,7 +125,7 @@ def transform_morpho(to_parse):
     return tokens
 
 def tag_sentence(sentence):
-    morpho_analyzer, pos_tagger, _  = start_processes()
+    morpho_analyzer, pos_tagger, _  = start_processes(process_to_start=['morpho', 'pos'])
 
     # do morpgological analyze
     morpho_form = send_input(morpho_analyzer, sentence + "\n")
@@ -132,7 +137,7 @@ def tag_sentences(sentences):
     if type(sentences) is not list:
         raise ValueError("sentences must be given as a list object")
 
-    morpho_analyzer, pos_tagger, _ = start_processes()
+    morpho_analyzer, pos_tagger, _ = start_processes(process_to_start=['morpho', 'pos'])
 
     joined_sentences = "\n".join(sentences)
     
