@@ -1,4 +1,4 @@
-#i coding:utf8
+# coding:utf8
 """
 Wrapper permettant l'utilisation de SyntaxNet en python
 Lance trois processus nécessaire à l'analyse de dépendance syntaxique en Français pour chaque analyse
@@ -8,6 +8,7 @@ Si plusieurs phrases sont à analyser, elles sont toutes envoyées d'un coup aux
 import yaml, time, subprocess
 import os.path as path
 from collections import OrderedDict
+import requests
 
 config_file = yaml.load(open(path.join(path.dirname(__file__), "../config.yml")))
 config_syntaxnet = config_file['syntaxnet']
@@ -26,174 +27,196 @@ def open_parser_eval(args):
         stderr=subprocess.PIPE # Only to avoid getting it in stdin
     )
 
-def start_processes(process_to_start=['morpho', 'pos', 'dependency']):
-    # Open the morphological analyzer
-    morpho_analyzer = None
-    pos_tagger = None
-    dependency_parser = None
-
-    if 'morpho' in process_to_start:
-	    morpho_analyzer = open_parser_eval([
-		"--input=stdin",
-		"--output=stdout-conll",
-		"--hidden_layer_sizes=64",
-		"--arg_prefix=brain_morpher",
-		"--graph_builder=structured",
-		"--task_context=%s" %context_path,
-		"--resource_dir=%s" %model_path,
-		"--model_path=%s/morpher-params" %model_path,
-		"--slim_model",
-		"--batch_size=1024",
-		"--alsologtostderr"
-	    ])
-
-    if 'pos' in process_to_start:
-	    # Open the part of speech tagger
-	    pos_tagger = open_parser_eval([
-		"--input=stdin-conll",
-		"--output=stdout-conll",
-		"--hidden_layer=64",
-		"--arg_prefix=brain_tagger",
-		"--graph_builder=structured",
-		"--task_context=%s" %context_path,
-		"--resource_dir=%s" %model_path,
-		"--model_path=%s/tagger-params" %model_path,
-		"--slim_model",
-		"--batch_size=1024",
-		"--alsologtostderr"
-
-	    ])
-    if 'dependency' in process_to_start:
-	    # Open the syntactic dependency parser.
-	    dependency_parser = open_parser_eval([
-		"--input=stdin-conll",
-		"--output=stdout-conll",
-		"--hidden_layer_sizes=512,512",
-		"--arg_prefix=brain_parser",
-		"--graph_builder=structured",
-		"--task_context=%s" %context_path,
-		"--resource_dir=%s" %model_path,
-		"--model_path=%s/parser-params" %model_path,
-		"--slim_model",
-		"--batch_size=1024",
-		"--alsologtostderr"
-	    ])
-    return morpho_analyzer, pos_tagger, dependency_parser
-
 def send_input(process, input):
     # communicate attend la fin du processus, une fois cette fonction appelé le processus est donc terminé.
     stdout, stderr = process.communicate(input.encode('utf8'))
     return stdout.decode("utf8")
 
+class SyntaxNetWrapper:
 
-def split_tokens(parse, fields_to_del=['lemma', 'feats', 'enhanced_dependency', 'misc']):
-    
-    # Format the result following ConLL convention http://universaldependencies.org/format.html
-    def format_token(line):
-        x = OrderedDict(zip(
-            ['index', 'token', 'lemma', 'label', 'pos', 'feats', 'parent', 'relation', 'enhanced_dependency', 'misc'],
-            line.split('\t')
-        ))
-        if x['index']:
-            x['index'] = int(x['index'])
-        if x['parent']:
-            x['parent'] = int(x['parent'])
+    def __init__(self, language='English'):
+        self.language = language
+        self.model_file = path.join(root_dir, model_path, language)
+        if not path.exists(self.model_file):
+            self.model_file = self._load_model()
 
-        for field in fields_to_del:
-            del x[field]
-        return x
+    def _load_model(self):
+        print "Load model %s" %language
+        response = requests.get('http://download.tensorflow.org/models/parsey_universal/%s>.zip' %self.language)
+        if response.ok != 200:
+            raise Exception('Error during load of model : %s' %response.status_code)
+        
+        model_file = path.join(root_dir, model_path, language)
+        with open(model_file, 'wb') as fd:
+            for chunk in response.iter_content(chunk_size=128):
+                fd.write(chunk)
+        
+        return model_file
 
-    return [format_token(line) for line in parse.strip().split('\n')]
+    def start_processes(self, process_to_start=['morpho', 'pos', 'dependency']):
+        # Open the morphological analyzer
+        morpho_analyzer = None
+        pos_tagger = None
+        dependency_parser = None
 
-def morpho_sentence(sentence):
-    morpho_analyzer, _, _ = start_processes(process_to_start=['morpho'])
-    # do morpgological analyze
-    return send_input(morpho_analyzer, sentence + "\n")
+        if 'morpho' in process_to_start:
+	        morpho_analyzer = open_parser_eval([
+		    "--input=stdin",
+		    "--output=stdout-conll",
+		    "--hidden_layer_sizes=64",
+		    "--arg_prefix=brain_morpher",
+                    "--graph_builder=structured",
+                    "--task_context=%s" %context_path,
+                    "--resource_dir=%s" %self.model_file,
+                    "--model_path=%s/morpher-params" %self.model_file,
+                    "--slim_model",
+                    "--batch_size=1024",
+                    "--alsologtostderr"
+                ])
 
-def morpho_sentences(sentences):
-    morpho_analyzer, _, _ = start_processes(process_to_start=['morpho'])
+        if 'pos' in process_to_start:
+                # Open the part of speech tagger
+                pos_tagger = open_parser_eval([
+                    "--input=stdin-conll",
+                    "--output=stdout-conll",
+                    "--hidden_layer=64",
+                    "--arg_prefix=brain_tagger",
+                    "--graph_builder=structured",
+                    "--task_context=%s" %context_path,
+                    "--resource_dir=%s" %self.model_file,
+                    "--model_path=%s/tagger-params" %self.model_file,
+                    "--slim_model",
+                    "--batch_size=1024",
+                    "--alsologtostderr"
 
-    joined_sentences = "\n".join(sentences)
-    
-    # do morpgological analyze
-    return send_input(morpho_analyzer, joined_sentences + "\n")
+                ])
+        if 'dependency' in process_to_start:
+                # Open the syntactic dependency parser.
+                dependency_parser = open_parser_eval([
+                    "--input=stdin-conll",
+                    "--output=stdout-conll",
+                    "--hidden_layer_sizes=512,512",
+                    "--arg_prefix=brain_parser",
+                    "--graph_builder=structured",
+                    "--task_context=%s" %context_path,
+                    "--resource_dir=%s" %self.model_file,
+                    "--model_path=%s/parser-params" %self.model_file,
+                    "--slim_model",
+                    "--batch_size=1024",
+                    "--alsologtostderr"
+                ])
 
-def transform_morpho(to_parse):
-    # Make a tree from pos tagging
-    to_parse = split_tokens(to_parse, fields_to_del=['lemma', 'label', 'pos', 'enhanced_dependency', 'misc', 'relation', 'parent'])
-    tokens = {token['index']: token for token in to_parse}
-    return tokens
+        return morpho_analyzer, pos_tagger, dependency_parser
 
-def tag_sentence(sentence):
-    morpho_analyzer, pos_tagger, _  = start_processes(process_to_start=['morpho', 'pos'])
 
-    # do morpgological analyze
-    morpho_form = send_input(morpho_analyzer, sentence + "\n")
-    
-    # do pos tagging
-    return send_input(pos_tagger, morpho_form)
+    def split_tokens(self, parse, fields_to_del=['lemma', 'feats', 'enhanced_dependency', 'misc']):
+        
+        # Format the result following ConLL convention http://universaldependencies.org/format.html
+        def format_token(line):
+            x = OrderedDict(zip(
+                ['index', 'token', 'lemma', 'label', 'pos', 'feats', 'parent', 'relation', 'enhanced_dependency', 'misc'],
+                line.split('\t')
+            ))
+            if x['index']:
+                x['index'] = int(x['index'])
+            if x['parent']:
+                x['parent'] = int(x['parent'])
 
-def tag_sentences(sentences):
-    if type(sentences) is not list:
-        raise ValueError("sentences must be given as a list object")
+            for field in fields_to_del:
+                del x[field]
+            return x
 
-    morpho_analyzer, pos_tagger, _ = start_processes(process_to_start=['morpho', 'pos'])
+        return [format_token(line) for line in parse.strip().split('\n')]
 
-    joined_sentences = "\n".join(sentences)
-    
-    # do morpgological analyze
-    morpho_form = send_input(morpho_analyzer, joined_sentences + "\n")
-    
-    # do pos tagging
-    return send_input(pos_tagger, morpho_form)
+    def morpho_sentence(self, sentence):
+        morpho_analyzer, _, _ = self.start_processes(process_to_start=['morpho'])
+        # do morpgological analyze
+        return send_input(morpho_analyzer, sentence + "\n")
 
-def transform_tag(to_parse):
-    # Make a tree from pos tagging
-    to_parse = split_tokens(to_parse, fields_to_del=['lemma', 'enhanced_dependency', 'misc', 'relation', 'parent'])
-    tokens = {token['index']: token for token in to_parse}
-    return tokens
+    def morpho_sentences(self, sentences):
+        morpho_analyzer, _, _ = self.start_processes(process_to_start=['morpho'])
 
-def parse_sentence(sentence):
-    morpho_analyzer, pos_tagger, dependency_parser = start_processes()
+        joined_sentences = "\n".join(sentences)
+        
+        # do morpgological analyze
+        return send_input(morpho_analyzer, joined_sentences + "\n")
 
-    # do morpgological analyze
-    morpho_form = send_input(morpho_analyzer, sentence + "\n")
-    
-    # do pos tagging
-    pos_tags = send_input(pos_tagger, morpho_form)
-    
-    # Do syntaxe parsing
-    return send_input(dependency_parser, pos_tags)
+    def transform_morpho(self, to_parse):
+        # Make a tree from pos tagging
+        to_parse = self.split_tokens(to_parse, fields_to_del=['lemma', 'label', 'pos', 'enhanced_dependency', 'misc', 'relation', 'parent'])
+        tokens = {token['index']: token for token in to_parse}
+        return tokens
 
-def parse_sentences(sentences):
-    if type(sentences) is not list:
-        raise ValueError("sentences must be given as a list object")
+    def tag_sentence(self, sentence):
+        morpho_analyzer, pos_tagger, _  = self.start_processes(process_to_start=['morpho', 'pos'])
 
-    morpho_analyzer, pos_tagger, dependency_parser = start_processes()
+        # do morpgological analyze
+        morpho_form = send_input(morpho_analyzer, sentence + "\n")
+        
+        # do pos tagging
+        return send_input(pos_tagger, morpho_form)
 
-    joined_sentences = "\n".join(sentences)
-    
-    # do morpgological analyze
-    morpho_form = send_input(morpho_analyzer, joined_sentences + "\n")
-    
-    # do pos tagging
-    pos_tags = send_input(pos_tagger, morpho_form)
-    
-    # Do syntaxe parsing
-    return send_input(dependency_parser, pos_tags)
+    def tag_sentences(self, sentences):
+        if type(sentences) is not list:
+            raise ValueError("sentences must be given as a list object")
 
-def transform_dependency(to_parse, sentence):
-    # Make a tree from dependency parsing
-    to_parse = split_tokens(to_parse)
-    tokens = {token['index']: token for token in to_parse}
-    tokens[0] = OrderedDict([("sentence", sentence)])
-    
-    for token in to_parse:
-        tokens[token['parent']].setdefault('tree', OrderedDict()).setdefault(token['relation'], []).append(token)
-        del token['parent']
-        del token['relation']
+        morpho_analyzer, pos_tagger, _ = self.start_processes(process_to_start=['morpho', 'pos'])
 
-    return tokens[0]
+        joined_sentences = "\n".join(sentences)
+        
+        # do morpgological analyze
+        morpho_form = send_input(morpho_analyzer, joined_sentences + "\n")
+        
+        # do pos tagging
+        return send_input(pos_tagger, morpho_form)
+
+    def transform_tag(self, to_parse):
+        # Make a tree from pos tagging
+        to_parse = self.split_tokens(to_parse, fields_to_del=['lemma', 'enhanced_dependency', 'misc', 'relation', 'parent'])
+        tokens = {token['index']: token for token in to_parse}
+        return tokens
+
+    def parse_sentence(self, sentence):
+        morpho_analyzer, pos_tagger, dependency_parser = self.start_processes()
+
+        # do morpgological analyze
+        morpho_form = send_input(morpho_analyzer, sentence + "\n")
+        
+        # do pos tagging
+        pos_tags = send_input(pos_tagger, morpho_form)
+        
+        # Do syntaxe parsing
+        return send_input(dependency_parser, pos_tags)
+
+    def parse_sentences(self, sentences):
+        if type(sentences) is not list:
+            raise ValueError("sentences must be given as a list object")
+
+        morpho_analyzer, pos_tagger, dependency_parser = self.start_processes()
+
+        joined_sentences = "\n".join(sentences)
+        
+        # do morpgological analyze
+        morpho_form = send_input(morpho_analyzer, joined_sentences + "\n")
+        
+        # do pos tagging
+        pos_tags = send_input(pos_tagger, morpho_form)
+        
+        # Do syntaxe parsing
+        return send_input(dependency_parser, pos_tags)
+
+    def transform_dependency(self, to_parse, sentence):
+        # Make a tree from dependency parsing
+        to_parse = self.split_tokens(to_parse)
+        tokens = {token['index']: token for token in to_parse}
+        tokens[0] = OrderedDict([("sentence", sentence)])
+        
+        for token in to_parse:
+            tokens[token['parent']].setdefault('tree', OrderedDict()).setdefault(token['relation'], []).append(token)
+            del token['parent']
+            del token['relation']
+
+        return tokens[0]
 
 if __name__ == '__main__':
     # Exemple d'utilisation avec l'entré standard
