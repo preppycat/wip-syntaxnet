@@ -178,21 +178,9 @@ INFO: All external dependencies fetched successfully.
 gcc unrecognized option -h ...
 ```
 
-### Mise en place du modèle FR
+### Utilisation de différente langue
 
-https://github.com/tensorflow/models/blob/master/syntaxnet/universal.md
-```bash
-(virtualenv)/tensorflow_models/syntaxnet/syntaxnet/models/parsey_universal$ wget http://download.tensorflow.org/models/parsey_universal/French.zip
-(virtualenv)/tensorflow_models/syntaxnet/syntaxnet/models/parsey_universal$ unzip French.zip
-```
-```bash
-(virtualenv)/tensorflow_models/syntaxnet/syntaxnet/models/parsey_universal$ echo "Une fille descend la rue" | syntaxnet/models/parsey_universal/parse.sh syntaxnet/models/parsey_universal/French
+Le wrapper utilise par default l'anglais. Il faut instancier le wrapper avec le nom de langue désiré : 
+`SyntaxNetWrapper(language='French')`, le nom de la langue doit correspondre à un modèle possible de SyntaxNet.
 
-.... Some start logs and ....
-INFO:tensorflow:Processed 1 documents
-1 Une _ DET _ Definite=Ind|Gender=Fem|Number=Sing|PronType=Dem|fPOS=DET++ 2 det _ _
-2 fille _ NOUN _ Gender=Fem|Number=Sing|fPOS=NOUN++ 3 nsubj _ _
-3 descend _ VERB _ Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|fPOS=VERB++ 0 ROOT _ _
-4 la _ DET _ Definite=Def|Gender=Fem|Number=Sing|fPOS=DET++ 5 det _ _
-5 rue _ NOUN _ Gender=Fem|Number=Sing|fPOS=NOUN++ 3 dobj _ _
-```
+Le wrapper se charge de télécharger le modèle et de le dézipper pour ensuite l'utiliser.
