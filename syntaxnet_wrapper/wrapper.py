@@ -9,6 +9,7 @@ import yaml, time, subprocess
 import os.path as path
 from collections import OrderedDict
 import requests
+import zipfile
 
 config_file = yaml.load(open(path.join(path.dirname(__file__), "../config.yml")))
 config_syntaxnet = config_file['syntaxnet']
@@ -36,20 +37,24 @@ class SyntaxNetWrapper:
 
     def __init__(self, language='English'):
         self.language = language
-        self.model_file = path.join(root_dir, model_path, language)
+        self.model_file = path.join(root_dir, model_path, self.language)
         if not path.exists(self.model_file):
             self.model_file = self._load_model()
-
+    
     def _load_model(self):
-        print "Load model %s" %language
-        response = requests.get('http://download.tensorflow.org/models/parsey_universal/%s>.zip' %self.language)
-        if response.ok != 200:
+        print "Load model %s" %self.language
+        response = requests.get('http://download.tensorflow.org/models/parsey_universal/%s.zip' %self.language)
+        if not response.ok:
             raise Exception('Error during load of model : %s' %response.status_code)
         
-        model_file = path.join(root_dir, model_path, language)
-        with open(model_file, 'wb') as fd:
+        model_file = path.join(root_dir, model_path, self.language)
+        with open(model_file + '.zip', 'wb') as fd:
             for chunk in response.iter_content(chunk_size=128):
                 fd.write(chunk)
+
+        zip_ref = zipfile.ZipFile(model_file + '.zip', 'r')
+        zip_ref.extractall(path.join(root_dir, model_path))
+        zip_ref.close()
         
         return model_file
 
