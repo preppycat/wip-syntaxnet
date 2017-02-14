@@ -226,6 +226,6 @@ class SyntaxNetWrapper:
 if __name__ == '__main__':
     # Exemple d'utilisation avec l'entré standard
     import sys, pprint
-    pprint.pprint(parse_sentence(sys.stdin.read().strip())['tree'])
+    pprint.pprint(SyntaxNetWrapper(language='French').parse_sentence(sys.stdin.read().strip())['tree'])
 
 
