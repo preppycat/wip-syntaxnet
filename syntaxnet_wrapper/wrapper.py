@@ -58,7 +58,7 @@ class SyntaxNetWrapper:
         
         return model_file
 
-    def start_processes(self, process_to_start=['morpho', 'pos', 'dependency']):
+    def _start_processes(self, process_to_start=['morpho', 'pos', 'dependency']):
         # Open the morphological analyzer
         morpho_analyzer = None
         pos_tagger = None
@@ -114,7 +114,7 @@ class SyntaxNetWrapper:
         return morpho_analyzer, pos_tagger, dependency_parser
 
 
-    def split_tokens(self, parse, fields_to_del=['lemma', 'feats', 'enhanced_dependency', 'misc']):
+    def _split_tokens(self, parse, fields_to_del=['lemma', 'feats', 'enhanced_dependency', 'misc']):
         
         # Format the result following ConLL convention http://universaldependencies.org/format.html
         def format_token(line):
@@ -134,12 +134,12 @@ class SyntaxNetWrapper:
         return [format_token(line) for line in parse.strip().split('\n') if line]
 
     def morpho_sentence(self, sentence):
-        morpho_analyzer, _, _ = self.start_processes(process_to_start=['morpho'])
+        morpho_analyzer, _, _ = self._start_processes(process_to_start=['morpho'])
         # do morpgological analyze
         return send_input(morpho_analyzer, sentence + "\n")
 
     def morpho_sentences(self, sentences):
-        morpho_analyzer, _, _ = self.start_processes(process_to_start=['morpho'])
+        morpho_analyzer, _, _ = self._start_processes(process_to_start=['morpho'])
 
         joined_sentences = "\n".join(sentences)
         
@@ -148,12 +148,12 @@ class SyntaxNetWrapper:
 
     def transform_morpho(self, to_parse):
         # Make a tree from pos tagging
-        to_parse = self.split_tokens(to_parse, fields_to_del=['lemma', 'label', 'pos', 'enhanced_dependency', 'misc', 'relation', 'parent'])
+        to_parse = self._split_tokens(to_parse, fields_to_del=['lemma', 'label', 'pos', 'enhanced_dependency', 'misc', 'relation', 'parent'])
         tokens = {token['index']: token for token in to_parse}
         return tokens
 
     def tag_sentence(self, sentence):
-        morpho_analyzer, pos_tagger, _  = self.start_processes(process_to_start=['morpho', 'pos'])
+        morpho_analyzer, pos_tagger, _  = self._start_processes(process_to_start=['morpho', 'pos'])
 
         # do morpgological analyze
         morpho_form = send_input(morpho_analyzer, sentence + "\n")
@@ -165,7 +165,7 @@ class SyntaxNetWrapper:
         if type(sentences) is not list:
             raise ValueError("sentences must be given as a list object")
 
-        morpho_analyzer, pos_tagger, _ = self.start_processes(process_to_start=['morpho', 'pos'])
+        morpho_analyzer, pos_tagger, _ = self._start_processes(process_to_start=['morpho', 'pos'])
 
         joined_sentences = "\n".join(sentences)
         
@@ -177,12 +177,12 @@ class SyntaxNetWrapper:
 
     def transform_tag(self, to_parse):
         # Make a tree from pos tagging
-        to_parse = self.split_tokens(to_parse, fields_to_del=['lemma', 'enhanced_dependency', 'misc', 'relation', 'parent'])
+        to_parse = self._split_tokens(to_parse, fields_to_del=['lemma', 'enhanced_dependency', 'misc', 'relation', 'parent'])
         tokens = {token['index']: token for token in to_parse}
         return tokens
 
     def parse_sentence(self, sentence):
-        morpho_analyzer, pos_tagger, dependency_parser = self.start_processes()
+        morpho_analyzer, pos_tagger, dependency_parser = self._start_processes()
 
         # do morpgological analyze
         morpho_form = send_input(morpho_analyzer, sentence + "\n")
@@ -197,7 +197,7 @@ class SyntaxNetWrapper:
         if type(sentences) is not list:
             raise ValueError("sentences must be given as a list object")
 
-        morpho_analyzer, pos_tagger, dependency_parser = self.start_processes()
+        morpho_analyzer, pos_tagger, dependency_parser = self._start_processes()
 
         joined_sentences = "\n".join(sentences)
         
@@ -212,7 +212,7 @@ class SyntaxNetWrapper:
 
     def transform_dependency(self, to_parse, sentence):
         # Make a tree from dependency parsing
-        to_parse = self.split_tokens(to_parse)
+        to_parse = self._split_tokens(to_parse)
         tokens = {token['index']: token for token in to_parse}
         tokens[0] = OrderedDict([("sentence", sentence)])
         

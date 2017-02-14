@@ -40,7 +40,7 @@ class TestWrapper(TestCase):
             OrderedDict([('index', 1), ('token', 'token1'), ('label', 'label1'), ('pos', 'pos1'), ('parent', 1), ('relation', 'relation1')]),
             OrderedDict([('index', 2), ('token', 'token2'), ('label', 'label2'), ('pos', 'pos2'), ('parent', 2), ('relation', 'relation2')])
         ]
-        self.assertEqual(result, SyntaxNetWrapper(language='French').split_tokens(input_tokens))
+        self.assertEqual(result, SyntaxNetWrapper(language='French')._split_tokens(input_tokens))
 
     def test_morpho_sentence(self):
         input_sentence = "Cet phrase est un test"
