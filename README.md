@@ -13,7 +13,7 @@ syntaxnet:
   ROOT_DIR: /home/user/workspace/syntactic_parser/tensorflow_models/syntaxnet
   PARSER_EVAL: bazel-bin/syntaxnet/parser_eval
   CONTEXT: syntaxnet/models/parsey_universal/context.pbtxt
-  MODEL: syntaxnet/models/parsey_universal/French
+  MODEL: syntaxnet/models/parsey_universal
 
 (virtualenv)/syntaxnet-wrapper$ python -m unittest discover syntaxnet_wrapper
 ....
