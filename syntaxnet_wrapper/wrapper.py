@@ -131,7 +131,7 @@ class SyntaxNetWrapper:
                 del x[field]
             return x
 
-        return [format_token(line) for line in parse.strip().split('\n')]
+        return [format_token(line) for line in parse.strip().split('\n') if line]
 
     def morpho_sentence(self, sentence):
         morpho_analyzer, _, _ = self.start_processes(process_to_start=['morpho'])
