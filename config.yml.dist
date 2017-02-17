@@ -3,4 +3,5 @@ syntaxnet:
     PARSER_EVAL: bazel-bin/syntaxnet/parser_eval
     CONTEXT: syntaxnet/models/parsey_universal/context.pbtxt
     MODEL: syntaxnet/models/parsey_universal
+    CUSTOM_FILE_DIR: /tmp # Folder where temp file will be created
     

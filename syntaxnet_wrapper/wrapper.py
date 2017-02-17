@@ -5,41 +5,46 @@ Lance trois processus nécessaire à l'analyse de dépendance syntaxique en Fran
 Si plusieurs phrases sont à analyser, elles sont toutes envoyées d'un coup aux processes et le résultat est une liste d'arbre
 """
 
-import yaml, time, subprocess
+import time, subprocess
 import os.path as path
 from collections import OrderedDict
 import requests
 import zipfile
 
-config_file = yaml.load(open(path.join(path.dirname(__file__), "../config.yml")))
-config_syntaxnet = config_file['syntaxnet']
-root_dir = config_syntaxnet['ROOT_DIR']
-parser_eval_path = config_syntaxnet['PARSER_EVAL']
-context_path = config_syntaxnet['CONTEXT']
-model_path = config_syntaxnet['MODEL']
-
-def open_parser_eval(args):
-    # Lance le processus parser eval de syntaxnet avec les arguments voulus
-    return subprocess.Popen(
-        [parser_eval_path] + args,
-        cwd = root_dir,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE # Only to avoid getting it in stdin
-    )
-
-def send_input(process, input):
-    # communicate attend la fin du processus, une fois cette fonction appelé le processus est donc terminé.
-    stdout, stderr = process.communicate(input.encode('utf8'))
-    return stdout.decode("utf8")
+from syntaxnet_wrapper.parser_eval import SyntaxNetConfig, SyntaxNetProcess
+from syntaxnet_wrapper import *
 
 class SyntaxNetWrapper:
 
     def __init__(self, language='English'):
+        print "enter init"
         self.language = language
         self.model_file = path.join(root_dir, model_path, self.language)
+
+        # Download language model if not in folder
         if not path.exists(self.model_file):
             self.model_file = self._load_model()
+        print "HAAA"
+        # Initiate Morpher
+        morpher_config = SyntaxNetConfig(
+            task_context=context_path,
+            resource_dir=self.model_file,
+            model_path=path.join(model_file, 'morpher_params'),
+            arg_prefix='brain_morpher',
+            input_='custom_file_morpher',
+            hidden_layer_sizes=64,
+            batch_size=1024,
+            slim_model=True,
+            custom_file=path.join(custom_file_dir, 'morpher.tmp'),
+            variable_scope='morpher',
+            graph_builder = 'structured'
+        )
+        print "before process"
+        self.morpher_process = SyntaxNetProcess(morpher_config)
+        print "after process"
+        # Initiate Tagger
+        # Initiate Parser
+
     
     def _load_model(self):
         print "Load model %s" %self.language
@@ -134,9 +139,7 @@ class SyntaxNetWrapper:
         return [format_token(line) for line in parse.strip().split('\n') if line]
 
     def morpho_sentence(self, sentence):
-        morpho_analyzer, _, _ = self._start_processes(process_to_start=['morpho'])
-        # do morpgological analyze
-        return send_input(morpho_analyzer, sentence + "\n")
+        return morpher_process.parse(sentence + "\n")
 
     def morpho_sentences(self, sentences):
         morpho_analyzer, _, _ = self._start_processes(process_to_start=['morpho'])
