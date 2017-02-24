@@ -52,13 +52,12 @@ java version "1.8.0_101"
 Java(TM) SE Runtime Environment (build 1.8.0_101-b13)
 Java HotSpot(TM) 64-Bit Server VM (build 25.101-b13, mixed mode)
 ```
-  - python 2.7
+  - python 2.7 -V
 ```bash
-$ python
-Python 2.7.9 (default, Jun 24 2016, 11:14:55)
-[GCC 4.8.4] on linux2
-Type "help", "copyright", "credits" or "license" for more information.
+$ python -V
+Python 2.7.13
 ```
+
   - gcc 4.8
 ```bash
 $ gcc -v
