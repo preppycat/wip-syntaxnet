@@ -128,7 +128,9 @@ protobuf==3.0.0b2
 
   Installation Mac :
 
-      brew install bazel
+      $ wget https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel-0.4.3-installer-darwin-x86_64.sh
+      $ bash bazel*.sh --user
+      $ bazel version
 
 - swig
   
