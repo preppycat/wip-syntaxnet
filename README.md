@@ -103,41 +103,48 @@ protobuf==3.0.0b2
 
 ### Installation des pré-requis si besoin
 
-  - pip
-```bash
-$ sudo apt-get install python-pip
-```
-  - bazel
-```bash
-# On s'assure que bazel n'est pas présent sur le système
-$ sudo apt-get purge bazel
-$ sudo apt-get autoremove
+- pip
+  
+        $ sudo apt-get install python-pip
 
-# Installation de bazel depuis les sources (les repos installent une version trop récente)
-$ wget https://github.com/bazelbuild/bazel/releases/download/0.3.1/bazel_0.3.1-linux-x86_64.deb
-$ dpkg -i bazel_0.3.1-linux-x86_64.deb
-$ bazel version
-Extracting Bazel installation...
-Build label: 0.3.1
-Build target: bazel-out/local-fastbuild/bin/src/main/java/com/google/devtools/build/lib/bazel/BazelServer_deploy.jar
-Build time: Fri Jul 29 09:09:52 2016 (1469783392)
-Build timestamp: 1469783392
-Build timestamp as int: 1469783392
-```
-  - swig
-```bash
-$ sudo apt-get install swig
-```
-  - protocol buffers
-```bash
-(virtualenv)$ pip install -U protobuf==3.0.0b2
-```
-  - package python
-```
-(virtualenv)$ pip install asciitree
-(virtualenv)$ pip install numpy
-(virtualenv)$ pip install mock
-```
+- bazel
+  
+  Installation Linux :
+  
+      # On s'assure que bazel n'est pas présent sur le système
+      $ sudo apt-get purge bazel
+      $ sudo apt-get autoremove
+
+      # Installation de bazel depuis les sources (les repos installent une version trop récente)
+      $ wget https://github.com/bazelbuild/bazel/releases/download/0.3.1/bazel_0.3.1-linux-x86_64.deb
+      $ dpkg -i bazel_0.3.1-linux-x86_64.deb
+      $ bazel version
+      Extracting Bazel installation...
+      Build label: 0.3.1
+      Build target: bazel-out/local-fastbuild/bin/src/main/java/com/google/devtools/build/lib/bazel/BazelServer_deploy.jar
+      Build time: Fri Jul 29 09:09:52 2016 (1469783392)
+      Build timestamp: 1469783392
+      Build timestamp as int: 1469783392
+
+  Installation Mac :
+
+      brew install bazel
+
+- swig
+  
+
+        $ sudo apt-get install swig
+
+
+- protocol buffers
+    
+        (virtualenv)$ pip install -U protobuf==3.0.0b2
+
+- package python
+
+        (virtualenv)$ pip install asciitree
+        (virtualenv)$ pip install numpy
+        (virtualenv)$ pip install mock
 
 ### Installation et compilation de syntaxnet
 ```bash
