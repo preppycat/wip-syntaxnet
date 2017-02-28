@@ -116,11 +116,11 @@ protobuf==3.0.0b2
       $ sudo apt-get autoremove
 
       # Installation de bazel depuis les sources (les repos installent une version trop récente)
-      $ wget https://github.com/bazelbuild/bazel/releases/download/0.3.1/bazel_0.3.1-linux-x86_64.deb
-      $ dpkg -i bazel_0.3.1-linux-x86_64.deb
+      $ wget https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel_0.4.3-linux-x86_64.deb
+      $ dpkg -i bazel_0.4.3-linux-x86_64.deb
       $ bazel version
       Extracting Bazel installation...
-      Build label: 0.3.1
+      Build label: 0.4.3
       Build target: bazel-out/local-fastbuild/bin/src/main/java/com/google/devtools/build/lib/bazel/BazelServer_deploy.jar
       Build time: Fri Jul 29 09:09:52 2016 (1469783392)
       Build timestamp: 1469783392
