@@ -11,9 +11,3 @@ root_dir = config_syntaxnet['ROOT_DIR']
 parser_eval_path = config_syntaxnet['PARSER_EVAL']
 context_path = config_syntaxnet['CONTEXT']
 model_path = config_syntaxnet['MODEL']
-custom_file_dir = config_syntaxnet['CUSTOM_FILE_DIR']
-
-
-
-
-

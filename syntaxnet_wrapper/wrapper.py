@@ -10,38 +10,41 @@ import os.path as path
 from collections import OrderedDict
 import requests
 import zipfile
+import random, string
 
-from syntaxnet_wrapper.parser_eval import SyntaxNetConfig, SyntaxNetProcess
+from syntaxnet_wrapper.parser_eval import SyntaxNetConfig, SyntaxNetProcess, configure_stdout
 from syntaxnet_wrapper import *
 
 class SyntaxNetWrapper:
 
     def __init__(self, language='English'):
-        print "enter init"
-        self.language = language
-        self.model_file = path.join(root_dir, model_path, self.language)
+        self._language = language
+        self._model_file = path.join(root_dir, model_path, self._language)
 
         # Download language model if not in folder
-        if not path.exists(self.model_file):
-            self.model_file = self._load_model()
-        print "HAAA"
+        if not path.exists(self._model_file):
+            self._model_file = self._load_model()
+
         # Initiate Morpher
         morpher_config = SyntaxNetConfig(
-            task_context=context_path,
-            resource_dir=self.model_file,
-            model_path=path.join(model_file, 'morpher_params'),
+            task_context=path.join(root_dir, context_path),
+            resource_dir=self._model_file,
+            model_path=path.join(self._model_file, 'morpher-params'),
             arg_prefix='brain_morpher',
             input_='custom_file_morpher',
-            hidden_layer_sizes=64,
+            hidden_layer_sizes=[64],
             batch_size=1024,
             slim_model=True,
-            custom_file=path.join(custom_file_dir, 'morpher.tmp'),
-            variable_scope='morpher',
-            graph_builder = 'structured'
+            custom_file='/tmp/morpher.tmp', # Need to be hardcoded, dependant with custom context.pbtxt
+	    # add random string to variable scope to have unique one. Allow instanciate several SyntaxNetWrapper
+            variable_scope='morpher' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)),
+            graph_builder_ = 'structured'
         )
-        print "before process"
-        self.morpher_process = SyntaxNetProcess(morpher_config)
-        print "after process"
+	
+	# init stdout file
+	configure_stdout('/tmp/stdout.tmp')
+        self._morpher_process = SyntaxNetProcess(morpher_config)
+
         # Initiate Tagger
         # Initiate Parser
 
@@ -139,7 +142,7 @@ class SyntaxNetWrapper:
         return [format_token(line) for line in parse.strip().split('\n') if line]
 
     def morpho_sentence(self, sentence):
-        return morpher_process.parse(sentence + "\n")
+        return self._morpher_process.parse(sentence + "\n")
 
     def morpho_sentences(self, sentences):
         morpho_analyzer, _, _ = self._start_processes(process_to_start=['morpho'])

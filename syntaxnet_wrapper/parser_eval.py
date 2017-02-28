@@ -14,8 +14,7 @@ import time
 
 ################################################################################
 # Make importable module from syntaxnet path
-
-from syntaxnet_wrapper import root_dir
+from syntaxnet_wrapper import root_dir, context_path
 
 def CreatePythonPathEntries(python_imports, module_space):
     parts = python_imports.split(':');
@@ -31,8 +30,14 @@ python_path_entries += repositories
 
 
 sys.path += python_path_entries
+################################################################################
+# Copy custoim context.pbtxt to replace the default one from syntaxnet repo
+# The custom context.pbtxt use custom file instead of stdin and stdout
+import shutil
+shutil.copyfile(path.join(path.dirname(__file__), './context.pbtxt'), path.join(root_dir, context_path))
 
 ################################################################################
+
 import tempfile 
 
 import tensorflow as tf
@@ -42,23 +47,21 @@ from tensorflow.python.platform import tf_logging as logging
 
 from google.protobuf import text_format
 
-print "HIHIHIHIH"
 from syntaxnet import sentence_pb2
 from syntaxnet.ops import gen_parser_ops
 from syntaxnet import task_spec_pb2
 
-print "HOHOHO"
 from syntaxnet import graph_builder
 from syntaxnet import structured_graph_builder
 
-def RewriteContext(task_context):
+def RewriteContext(task_context, resource_dir):
   context = task_spec_pb2.TaskSpec()
   with gfile.FastGFile(task_context) as fin:
     text_format.Merge(fin.read(), context)
   for resource in context.input:
     for part in resource.part:
       if part.file_pattern != '-':
-        part.file_pattern = os.path.join(FLAGS.resource_dir, part.file_pattern)
+        part.file_pattern = os.path.join(resource_dir, part.file_pattern)
   with tempfile.NamedTemporaryFile(delete=False) as fout:
     fout.write(str(context))
     return fout.name
@@ -79,7 +82,7 @@ class SyntaxNetConfig:
         slim_model=False, # Whether to expect only averaged variables.
         custom_file='/tmp/tmp.file', # File to communicate input to SyntaxNet
         variable_scope=None, # Scope with the defined parser variable, to set up the context
-        max_temp_size=262144000 # Maximum size of temp input file
+        max_tmp_size=262144000 # Maximum size of tmp input file
         ):
 
         self.task_context = task_context
@@ -95,7 +98,7 @@ class SyntaxNetConfig:
         self.slim_model = slim_model
         self.custom_file = custom_file
         self.variable_scope = variable_scope
-        self.max_temp_size = max_temp_size
+        self.max_tmp_size = max_tmp_size
 
 class SyntaxNetProcess:
 
@@ -107,46 +110,51 @@ class SyntaxNetProcess:
         """Builds and evaluates a network."""
         self.task_context = self._pg.task_context
         if self._pg.resource_dir:
-            task_context = RewriteContext(self.task_context)
+            self.task_context = RewriteContext(self.task_context, self._pg.resource_dir)
         
-        with tf.variable_scope(self.cfg_.variable_scope):
-            feature_sizes, domain_sizes, embedding_dims, num_actions = sess.run(
+	# Initiate custom tmp file
+	with open(self._pg.custom_file, 'w') as f:
+      	    pass
+        self.fdescr_ = open(self._pg.custom_file, 'r')
+
+	with tf.variable_scope(self._pg.variable_scope):
+            feature_sizes, domain_sizes, embedding_dims, num_actions = self._sess.run(
                 gen_parser_ops.feature_size(task_context=self.task_context, arg_prefix=self._pg.arg_prefix))
 
-        if self._pg.graph_builder_ == 'greedy':
-            parser = graph_builder.GreedyParser(num_actions,
-                                        feature_sizes,
-                                        domain_sizes,
-                                        embedding_dims,
-                                        self._pg.hidden_layer_sizes,
-                                        gate_gradients=True,
-                                        arg_prefix=self._pg.arg_prefix)
-        else:
-            parser = structured_graph_builder.StructuredGraphBuilder(num_actions,
-                                                                feature_sizes,
-                                                                domain_sizes,
-                                                                embedding_dims,
-                                                                self._pg.hidden_layer_sizes,
-                                                                gate_gradients=True,
-                                                                arg_prefix=self._pg.arg_prefix,
-                                                                beam_size=self._pg.beam_size,
-                                                                max_steps=self._pg.max_steps)
-            parser.AddEvaluation(self.task_context, self._pg.batch_size, corpus_name=self._pg.input_, evaluation_max_steps=self._pg.max_steps)
-            parser.AddSaver(self._pg.slim_model)
-            sess.run(parser.inits.values())
-            parser.saver.restore(sess, self._pg.model_path)
 
+            if self._pg.graph_builder_ == 'greedy':
+                self._parser = graph_builder.GreedyParser(num_actions,
+                                            feature_sizes,
+                                            domain_sizes,
+                                            embedding_dims,
+                                            self._pg.hidden_layer_sizes,
+                                            gate_gradients=True,
+                                            arg_prefix=self._pg.arg_prefix)
+            else:
+                self._parser = structured_graph_builder.StructuredGraphBuilder(num_actions,
+                                                                    feature_sizes,
+                                                                    domain_sizes,
+                                                                    embedding_dims,
+                                                                    self._pg.hidden_layer_sizes,
+                                                                    gate_gradients=True,
+                                                                    arg_prefix=self._pg.arg_prefix,
+                                                                    beam_size=self._pg.beam_size,
+                                                                    max_steps=self._pg.max_steps)
+                self._parser.AddEvaluation(self.task_context, self._pg.batch_size, corpus_name=self._pg.input_, evaluation_max_steps=self._pg.max_steps)
+                self._parser.AddSaver(self._pg.slim_model)
+                self._sess.run(self._parser.inits.values())
+                self._parser.saver.restore(self._sess, self._pg.model_path)
   
     def parse(self, raw_bytes):
-        if os.stat(self.cfg_.custom_file_path).st_size > self.cfg_.max_tmp_size:
+        if os.stat(self._pg.custom_file).st_size > self._pg.max_tmp_size:
             # Cleaning input file at each new call of parse
             with open(self._pg.custom_file, 'w') as f:
                 pass
 
-        # Reset offset inside tensorflow input file class
-        self._parse_impl()
+            # Reset offset inside tensorflow input file class
+            self._parse_impl()
 
-        with open(self.cfg_.custom_file, 'a') as f:
+        with open(self._pg.custom_file, 'a') as f:
             f.write(raw_bytes)
             f.flush()
 
@@ -155,22 +163,22 @@ class SyntaxNetProcess:
         return self._read_all_stream()
 
     def _parse_impl(self):
-        with tf.variable_scope(self.cfg_.variable_scope):
-            tf_eval_epochs, tf_eval_metrics, tf_documents = sess.run([
-                parser.evaluation['epochs'],
-                parser.evaluation['eval_metrics'],
-                parser.evaluation['documents'],
+        with tf.variable_scope(self._pg.variable_scope):
+            tf_eval_epochs, tf_eval_metrics, tf_documents = self._sess.run([
+                self._parser.evaluation['epochs'],
+                self._parser.evaluation['eval_metrics'],
+                self._parser.evaluation['documents'],
             ])
 
-        sink_documents = tf.placeholder(tf.string)
-        sink = gen_parser_ops.document_sink(sink_documents,
-                                            task_context=self.task_context_,
-                                            corpus_name='stdout-conll')
+            sink_documents = tf.placeholder(tf.string)
+            sink = gen_parser_ops.document_sink(sink_documents,
+                                                task_context=self.task_context,
+                                                corpus_name='stdout-conll')
 
-        self.sess_.run(sink, feed_dict={sink_documents: tf_documents})
+            self._sess.run(sink, feed_dict={sink_documents: tf_documents})
 
-        sys.stdout.write('\n')
-        sys.stdout.flush()
+            sys.stdout.write('\n')
+            sys.stdout.flush()
 
     def _read_all_stream(self):
         with open(self.stdout_file_path, 'r') as f:
@@ -182,4 +190,10 @@ class SyntaxNetProcess:
         sys.stdout.flush()
 
         return result[:-1]
+
+def configure_stdout(stdout_file_path):
+    strm = open(stdout_file_path, 'w') # bypassing linux 64 kb pipe limit
+    os.dup2(strm.fileno(), sys.stdout.fileno())
+
+    return strm
 
