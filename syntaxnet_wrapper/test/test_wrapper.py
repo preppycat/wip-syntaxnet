@@ -16,6 +16,14 @@ class TestWrapper(TestCase):
         input_sentences = [u"Une première phrase de test", u"Une expression est secondaire"]
         results = u'1\tUne\t_\t_\t_\tDefinite=Ind|Gender=Fem|Number=Sing|PronType=Dem|fPOS=DET++\t0\t_\t_\t_\n2\tpremi\xe8re\t_\t_\t_\tGender=Fem|Number=Sing|fPOS=ADJ++\t0\t_\t_\t_\n3\tphrase\t_\t_\t_\tGender=Fem|Number=Sing|fPOS=NOUN++\t0\t_\t_\t_\n4\tde\t_\t_\t_\tfPOS=ADP++\t0\t_\t_\t_\n5\ttest\t_\t_\t_\tGender=Masc|Number=Sing|fPOS=NOUN++\t0\t_\t_\t_\n\n1\tUne\t_\t_\t_\tDefinite=Ind|Gender=Fem|Number=Sing|PronType=Dem|fPOS=DET++\t0\t_\t_\t_\n2\texpression\t_\t_\t_\tGender=Fem|Number=Sing|fPOS=NOUN++\t0\t_\t_\t_\n3\test\t_\t_\t_\tMood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|fPOS=VERB++\t0\t_\t_\t_\n4\tsecondaire\t_\t_\t_\tGender=Fem|Number=Sing|fPOS=ADJ++\t0\t_\t_\t_\n\n'
         self.assertEqual(results, SyntaxNetWrapper(language='French').morpho_sentences(input_sentences))
+    
+    def test_several_call(self):
+        input_sentences = [u"Une première phrase de test", u"Une expression est secondaire"]
+        results = [u'1\tUne\t_\t_\t_\tDefinite=Ind|Gender=Fem|Number=Sing|PronType=Dem|fPOS=DET++\t0\t_\t_\t_\n2\tpremi\xe8re\t_\t_\t_\tGender=Fem|Number=Sing|fPOS=ADJ++\t0\t_\t_\t_\n3\tphrase\t_\t_\t_\tGender=Fem|Number=Sing|fPOS=NOUN++\t0\t_\t_\t_\n4\tde\t_\t_\t_\tfPOS=ADP++\t0\t_\t_\t_\n5\ttest\t_\t_\t_\tGender=Masc|Number=Sing|fPOS=NOUN++\t0\t_\t_\t_\n\n', u'1\tUne\t_\t_\t_\tDefinite=Ind|Gender=Fem|Number=Sing|PronType=Dem|fPOS=DET++\t0\t_\t_\t_\n2\texpression\t_\t_\t_\tGender=Fem|Number=Sing|fPOS=NOUN++\t0\t_\t_\t_\n3\test\t_\t_\t_\tMood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|fPOS=VERB++\t0\t_\t_\t_\n4\tsecondaire\t_\t_\t_\tGender=Fem|Number=Sing|fPOS=ADJ++\t0\t_\t_\t_\n\n']
+
+	sn_wrapper = SyntaxNetWrapper(language='French')
+   	for idx, sentence in enumerate(input_sentences):
+             self.assertEqual(results[idx], sn_wrapper.morpho_sentence(sentence))
 
     def test_morpho_transform(self):
         input_morpho = u'1\tCet\t_\t_\t_\tGender=Fem|Number=Sing|fPOS=DET++\t0\t_\t_\t_\n2\tphrase\t_\t_\t_\tGender=Fem|Number=Sing|fPOS=NOUN++\t0\t_\t_\t_\n3\test\t_\t_\t_\tMood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|fPOS=VERB++\t0\t_\t_\t_\n4\tun\t_\t_\t_\tDefinite=Ind|Gender=Masc|Number=Sing|PronType=Dem|fPOS=DET++\t0\t_\t_\t_\n5\ttest\t_\t_\t_\tGender=Masc|Number=Sing|fPOS=NOUN++\t0\t_\t_\t_\n\n'
