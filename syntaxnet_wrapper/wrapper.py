@@ -81,12 +81,12 @@ class SyntaxNetWrapper:
 	self._parser_process = SyntaxNetProcess(parser_config)
     
     def _load_model(self):
-        print "Load model %s" %self.language
-        response = requests.get('http://download.tensorflow.org/models/parsey_universal/%s.zip' %self.language)
+        print "Load model %s" %self._language
+        response = requests.get('http://download.tensorflow.org/models/parsey_universal/%s.zip' %self._language)
         if not response.ok:
             raise Exception('Error during load of model : %s' %response.status_code)
         
-        model_file = path.join(root_dir, model_path, self.language)
+        model_file = path.join(root_dir, model_path, self._language)
         with open(model_file + '.zip', 'wb') as fd:
             for chunk in response.iter_content(chunk_size=128):
                 fd.write(chunk)
