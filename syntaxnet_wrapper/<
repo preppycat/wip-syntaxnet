@@ -63,7 +63,7 @@ class SyntaxNetWrapper:
         self._tagger_process = SyntaxNetProcess(tagger_config)
 	
         # Initiate Parser
-	parser_config = SyntaxNetConfig(
+	tagger_config = SyntaxNetConfig(
             task_context=path.join(root_dir, context_path),
             resource_dir=self._model_file,
             model_path=path.join(self._model_file, 'parser-params'),
@@ -78,7 +78,6 @@ class SyntaxNetWrapper:
             graph_builder_ = 'structured'
 	)
 
-	self._parser_process = SyntaxNetProcess(parser_config)
     
     def _load_model(self):
         print "Load model %s" %self.language
@@ -155,6 +154,7 @@ class SyntaxNetWrapper:
         if type(sentences) is not list:
             raise ValueError("sentences must be given as a list object")
 
+
         joined_sentences = '\n'.join([self._format_sentence(sentence) for sentence in sentences])
         
         # do morpgological analyze
@@ -185,17 +185,18 @@ class SyntaxNetWrapper:
         if type(sentences) is not list:
             raise ValueError("sentences must be given as a list object")
 
-        joined_sentences = '\n'.join([self._format_sentence(sentence) for sentence in sentences])
+        morpho_analyzer, pos_tagger, dependency_parser = self._start_processes()
+
+        joined_sentences = "\n".join(sentences)
         
         # do morpgological analyze
-        morpho_form = self._morpher_process.parse(joined_sentences + "\n")
+        morpho_form = send_input(morpho_analyzer, joined_sentences + "\n")
         
         # do pos tagging
-       	pos_tags = self._tagger_process.parse(morpho_form)
+        pos_tags = send_input(pos_tagger, morpho_form)
         
         # Do syntaxe parsing
-        syntax_form = self._parser_process.parse(pos_tags)
-        return syntax_form.decode('utf-8')
+        return send_input(dependency_parser, pos_tags)
 
     def transform_dependency(self, to_parse, sentence):
         # Make a tree from dependency parsing
