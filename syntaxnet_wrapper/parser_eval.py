@@ -112,12 +112,12 @@ class SyntaxNetProcess:
         if self._pg.resource_dir:
             self.task_context = RewriteContext(self.task_context, self._pg.resource_dir)
         
-	# Initiate custom tmp file
-	with open(self._pg.custom_file, 'w') as f:
-      	    pass
+        # Initiate custom tmp file
+        with open(self._pg.custom_file, 'w') as f:
+            pass
         self.fdescr_ = open(self._pg.custom_file, 'r')
 
-	with tf.variable_scope(self._pg.variable_scope):
+        with tf.variable_scope(self._pg.variable_scope):
             feature_sizes, domain_sizes, embedding_dims, num_actions = self._sess.run(
                 gen_parser_ops.feature_size(task_context=self.task_context, arg_prefix=self._pg.arg_prefix))
 
