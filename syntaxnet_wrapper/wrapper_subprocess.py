@@ -29,60 +29,65 @@ def send_input(process, input):
 
 
 class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
-
+    """
+    Wrapper allow SyntaxNet use with subprocess calling. Similar to the "demo.sh" call
+    Launch tree processes needed to the parsing for each analyse
+    If you have several sentences to process, you might prefer to parse them all in one call with convinient function instead 
+    of several heavy calls
+    """
 
     def _start_processes(self, process_to_start=['morpho', 'pos', 'dependency']):
-        # Open the morphological analyzer
         morpho_analyzer = None
         pos_tagger = None
         dependency_parser = None
 
         if 'morpho' in process_to_start:
-                morpho_analyzer = open_parser_eval([
-                    "--input=stdin",
-                    "--output=stdout-conll",
-                    "--hidden_layer_sizes=64",
-                    "--arg_prefix=brain_morpher",
-                    "--graph_builder=structured",
-                    "--task_context=%s" %context_path,
-                    "--resource_dir=%s" %self._model_file,
-                    "--model_path=%s/morpher-params" %self._model_file,
-                    "--slim_model",
-                    "--batch_size=1024",
-                    "--alsologtostderr"
-                ])
+            # Open the morphological analyzer
+            morpho_analyzer = open_parser_eval([
+                "--input=stdin",
+                "--output=stdout-conll",
+                "--hidden_layer_sizes=64",
+                "--arg_prefix=brain_morpher",
+                "--graph_builder=structured",
+                "--task_context=%s" %context_path,
+                "--resource_dir=%s" %self._model_file,
+                "--model_path=%s/morpher-params" %self._model_file,
+                "--slim_model",
+                "--batch_size=1024",
+                "--alsologtostderr"
+            ])
 
         if 'pos' in process_to_start:
-                # Open the part of speech tagger
-                pos_tagger = open_parser_eval([
-                    "--input=stdin-conll",
-                    "--output=stdout-conll",
-                    "--hidden_layer=64",
-                    "--arg_prefix=brain_tagger",
-                    "--graph_builder=structured",
-                    "--task_context=%s" %context_path,
-                    "--resource_dir=%s" %self._model_file,
-                    "--model_path=%s/tagger-params" %self._model_file,
-                    "--slim_model",
-                    "--batch_size=1024",
-                    "--alsologtostderr"
+            # Open the part of speech tagger
+            pos_tagger = open_parser_eval([
+                "--input=stdin-conll",
+                "--output=stdout-conll",
+                "--hidden_layer=64",
+                "--arg_prefix=brain_tagger",
+                "--graph_builder=structured",
+                "--task_context=%s" %context_path,
+                "--resource_dir=%s" %self._model_file,
+                "--model_path=%s/tagger-params" %self._model_file,
+                "--slim_model",
+                "--batch_size=1024",
+                "--alsologtostderr"
 
-                ])
+            ])
         if 'dependency' in process_to_start:
-                # Open the syntactic dependency parser.
-                dependency_parser = open_parser_eval([
-                    "--input=stdin-conll",
-                    "--output=stdout-conll",
-                    "--hidden_layer_sizes=512,512",
-                    "--arg_prefix=brain_parser",
-                    "--graph_builder=structured",
-                    "--task_context=%s" %context_path,
-                    "--resource_dir=%s" %self._model_file,
-                    "--model_path=%s/parser-params" %self._model_file,
-                    "--slim_model",
-                    "--batch_size=1024",
-                    "--alsologtostderr"
-                ])
+            # Open the syntactic dependency parser.
+            dependency_parser = open_parser_eval([
+                "--input=stdin-conll",
+                "--output=stdout-conll",
+                "--hidden_layer_sizes=512,512",
+                "--arg_prefix=brain_parser",
+                "--graph_builder=structured",
+                "--task_context=%s" %context_path,
+                "--resource_dir=%s" %self._model_file,
+                "--model_path=%s/parser-params" %self._model_file,
+                "--slim_model",
+                "--batch_size=1024",
+                "--alsologtostderr"
+            ])
 
         return morpho_analyzer, pos_tagger, dependency_parser
 
@@ -134,7 +139,7 @@ class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
         # do pos tagging
         pos_tags = send_input(pos_tagger, morpho_form)
         
-        # Do syntaxe parsing
+        # do syntax parsing
         return send_input(dependency_parser, pos_tags).decode('utf-8')
 
     def parse_sentences(self, sentences):
@@ -151,5 +156,5 @@ class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
         # do pos tagging
         pos_tags = send_input(pos_tagger, morpho_form)
         
-        # Do syntaxe parsing
+        # do syntax parsing
         return send_input(dependency_parser, pos_tags).decode('utf-8')

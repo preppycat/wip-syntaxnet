@@ -11,7 +11,10 @@ from syntaxnet_wrapper import *
 
 
 class AbstractSyntaxNetWrapper(object):
-
+    """
+    Abstract Wrapper class, define common function
+    Should not be instanciated by user
+    """
 
     def __init__(self, language='English'):
         self._language = language

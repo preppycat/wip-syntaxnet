@@ -4,13 +4,13 @@
 # itself inspired from https://github.com/tensorflow/models/blob/master/syntaxnet/syntaxnet/parser_eval.py
 # just modified to be able to call wrapper several time for the same process
 #
-# ==============================================================================
 
 """A program to annotate a conll file with a tensorflow neural net parser."""
 
 import os, sys
 import os.path as path
 import time
+
 
 ################################################################################
 # Make importable module from syntaxnet path
@@ -31,7 +31,7 @@ python_path_entries += repositories
 
 sys.path += python_path_entries
 ################################################################################
-# Copy custoim context.pbtxt to replace the default one from syntaxnet repo
+# Copy custom context.pbtxt to replace the default one from syntaxnet repo
 # The custom context.pbtxt use custom file instead of stdin and stdout
 import shutil
 shutil.copyfile(path.join(path.dirname(__file__), './context.pbtxt'), path.join(root_dir, context_path))
@@ -54,6 +54,7 @@ from syntaxnet import task_spec_pb2
 from syntaxnet import graph_builder
 from syntaxnet import structured_graph_builder
 
+
 def RewriteContext(task_context, resource_dir):
   context = task_spec_pb2.TaskSpec()
   with gfile.FastGFile(task_context) as fin:
@@ -66,23 +67,24 @@ def RewriteContext(task_context, resource_dir):
     fout.write(str(context))
     return fout.name
 
+
 class SyntaxNetConfig:
     
     def __init__(self,
-        task_context='', # Path to a task context with inputs and parameters for feature extractors.
-        resource_dir='', # Optional base directory for task context resources.
-        model_path='', # Path to model parameters.
-        arg_prefix=None, # Prefix for context parameters.
-        graph_builder_='greedy', # Which graph builder to use, either greedy or structured.
-        input_='stdin', # Name of the context input to read data from.
+        task_context='',               # Path to a task context with inputs and parameters for feature extractors.
+        resource_dir='',               # Optional base directory for task context resources.
+        model_path='',                 # Path to model parameters.
+        arg_prefix=None,               # Prefix for context parameters.
+        graph_builder_='greedy',       # Which graph builder to use, either greedy or structured.
+        input_='stdin',                # Name of the context input to read data from.
         hidden_layer_sizes=[200, 200], # Comma separated list of hidden layer sizes.
-        batch_size=32, # Number of sentences to process in parallel.
-        beam_size=8, # Number of slots for beam parsing.
-        max_steps=1000, # Max number of steps to take.
-        slim_model=False, # Whether to expect only averaged variables.
-        custom_file='/tmp/tmp.file', # File to communicate input to SyntaxNet
-        variable_scope=None, # Scope with the defined parser variable, to set up the context
-        max_tmp_size=262144000 # Maximum size of tmp input file
+        batch_size=32,                 # Number of sentences to process in parallel.
+        beam_size=8,                   # Number of slots for beam parsing.
+        max_steps=1000,                # Max number of steps to take.
+        slim_model=False,              # Whether to expect only averaged variables.
+        custom_file='/tmp/tmp.file',   # File to communicate input to SyntaxNet
+        variable_scope=None,           # Scope with the defined parser variable, to set up the context
+        max_tmp_size=262144000,        # Maximum size of tmp input file
         ):
 
         self.task_context = task_context
@@ -102,16 +104,19 @@ class SyntaxNetConfig:
 
 class SyntaxNetProcess:
 
+
     def __init__(self, processconfig):
         self._sess = tf.Session()
         self._pg = processconfig
         self.stdout_file_path = os.path.join(os.path.dirname(self._pg.custom_file), 'stdout.tmp') # File where syntaxnet output will be written
 
-        """Builds and evaluates a network."""
+        """
+        Builds and evaluates a network.
+        """
         self.task_context = self._pg.task_context
         if self._pg.resource_dir:
             self.task_context = RewriteContext(self.task_context, self._pg.resource_dir)
-        
+
         # Initiate custom tmp file
         with open(self._pg.custom_file, 'w') as f:
             pass
@@ -144,7 +149,8 @@ class SyntaxNetProcess:
                 self._parser.AddSaver(self._pg.slim_model)
                 self._sess.run(self._parser.inits.values())
                 self._parser.saver.restore(self._sess, self._pg.model_path)
-  
+
+
     def parse(self, raw_bytes):
         if os.stat(self._pg.custom_file).st_size > self._pg.max_tmp_size:
             # Cleaning input file at each new call of parse
@@ -161,6 +167,7 @@ class SyntaxNetProcess:
         self._parse_impl()
 
         return self._read_all_stream()
+
 
     def _parse_impl(self):
         with tf.variable_scope(self._pg.variable_scope):
@@ -180,6 +187,7 @@ class SyntaxNetProcess:
             sys.stdout.write('\n')
             sys.stdout.flush()
 
+
     def _read_all_stream(self):
         with open(self.stdout_file_path, 'r') as f:
             result = f.read()
@@ -190,6 +198,7 @@ class SyntaxNetProcess:
         sys.stdout.flush()
 
         return result[:-1]
+
 
 def configure_stdout(stdout_file_path):
     strm = open(stdout_file_path, 'w') # bypassing linux 64 kb pipe limit

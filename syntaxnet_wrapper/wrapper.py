@@ -1,9 +1,5 @@
 # coding:utf8
-"""
-Wrapper permettant l'utilisation de SyntaxNet en python
-Lance trois processus nécessaire à l'analyse de dépendance syntaxique en Français pour chaque analyse
-Si plusieurs phrases sont à analyser, elles sont toutes envoyées d'un coup aux processes et le résultat est une liste d'arbre
-"""
+
 import os.path as path
 import random, string
 
@@ -12,7 +8,10 @@ from syntaxnet_wrapper.parser_eval import SyntaxNetConfig, SyntaxNetProcess, con
 from syntaxnet_wrapper import *
 
 class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
-
+    """
+    Wrapper allow use of SyntaxNet in python without subpocess calling
+    The pure python call improve efficiency, mainly when the user needs to make several distinct calls to the wrapper
+    """
 
     def __init__(self, language='English'):
 
@@ -84,7 +83,7 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
             raise ValueError("sentences must be given as a list object")
 
         joined_sentences = '\n'.join([self._format_sentence(sentence) for sentence in sentences])
-        
+
         # do morpgological analyze
         result = self._morpher_process.parse(joined_sentences + "\n")
         return result.decode('utf-8')
@@ -93,8 +92,8 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
     def tag_sentence(self, sentence):
 
         # do morpgological analyze
-        morpho_form = self.morpho_sentence(self._format_sentence(sentence))
-        
+        morpho_form = self._morpher_process.parse(sentence)
+
         # do pos tagging
         pos_tags = self._tagger_process.parse(morpho_form)
         return pos_tags.decode('utf-8')
@@ -105,10 +104,10 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
             raise ValueError("sentences must be given as a list object")
 
         joined_sentences = '\n'.join([self._format_sentence(sentence) for sentence in sentences])
-        
+
         # do morpgological analyze
-        morpho_form = self._morpher_process.parse(joined_sentences + "\n")
-        
+        morpho_form = self._morpher_process.parse(joined_sentences + '\n')
+
         # do pos tagging
         pos_tags = self._tagger_process.parse(morpho_form)
         return pos_tags.decode('utf-8')
@@ -116,12 +115,12 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
 
     def parse_sentence(self, sentence):
         # do morpgological analyze
-        morpho_form = self.morpho_sentence(self._format_sentence(sentence))
-        
+        morpho_form = self._morpher_process.parse(sentence)
+
         # do pos tagging
         pos_tags = self._tagger_process.parse(morpho_form)
 
-        # Do syntaxe parsing
+        # do syntax parsing
         syntax_form = self._parser_process.parse(pos_tags)
         return syntax_form.decode('utf-8')
 
@@ -131,13 +130,13 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
             raise ValueError("sentences must be given as a list object")
 
         joined_sentences = '\n'.join([self._format_sentence(sentence) for sentence in sentences])
-        
+
         # do morpgological analyze
         morpho_form = self._morpher_process.parse(joined_sentences + "\n")
-        
+
         # do pos tagging
         pos_tags = self._tagger_process.parse(morpho_form)
-        
-        # Do syntaxe parsing
+
+        # do syntax parsing
         syntax_form = self._parser_process.parse(pos_tags)
         return syntax_form.decode('utf-8')
