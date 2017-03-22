@@ -79,8 +79,8 @@ class AbstractSyntaxNetWrapper(object):
 
     def transform_morpho(self, to_parse):
         # make a tree from morpho form
-        to_parse = self._split_tokens(to_parse, fields_to_del=['lemma', 'label', 'pos', 'enhanced_dependency', 'misc', 'relation', 'parent'])
-        return {token['index']: token for token in to_parse}
+        parsed_morpho = self._split_tokens(to_parse, fields_to_del=['lemma', 'label', 'pos', 'enhanced_dependency', 'misc', 'relation', 'parent'])
+        return {token['index']: token for token in parsed_morpho}
 
 
     def tag_sentence(self, sentence):

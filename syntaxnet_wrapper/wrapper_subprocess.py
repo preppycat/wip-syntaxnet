@@ -31,14 +31,12 @@ class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
     of several heavy calls
     """
 
-    def _start_processes(self, process_to_start=['morpho', 'pos', 'dependency']):
-        morpho_analyzer = None
-        pos_tagger = None
-        dependency_parser = None
+    def _start_processes(self, morpho=False, pos=False, dependency=False):
+        processes = []
 
-        if 'morpho' in process_to_start:
+        if morpho:
             # Open the morphological analyzer
-            morpho_analyzer = open_parser_eval([
+            processes.append(open_parser_eval([
                 "--input=stdin",
                 "--output=stdout-conll",
                 "--hidden_layer_sizes=64",
@@ -50,11 +48,11 @@ class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
                 "--slim_model",
                 "--batch_size=1024",
                 "--alsologtostderr"
-            ])
+            ]))
 
-        if 'pos' in process_to_start:
+        if pos:
             # Open the part of speech tagger
-            pos_tagger = open_parser_eval([
+            processes.append(open_parser_eval([
                 "--input=stdin-conll",
                 "--output=stdout-conll",
                 "--hidden_layer=64",
@@ -67,10 +65,10 @@ class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
                 "--batch_size=1024",
                 "--alsologtostderr"
 
-            ])
-        if 'dependency' in process_to_start:
+            ]))
+        if dependency:
             # Open the syntactic dependency parser.
-            dependency_parser = open_parser_eval([
+            processes.append(open_parser_eval([
                 "--input=stdin-conll",
                 "--output=stdout-conll",
                 "--hidden_layer_sizes=512,512",
@@ -82,18 +80,18 @@ class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
                 "--slim_model",
                 "--batch_size=1024",
                 "--alsologtostderr"
-            ])
+            ]))
 
-        return morpho_analyzer, pos_tagger, dependency_parser
+        return processes
 
 
     def morpho_sentence(self, sentence):
-        morpho_analyzer, _, _ = self._start_processes(process_to_start=['morpho'])
+        morpho_analyzer = self._start_processes(morpho=True)[0]
         # do morphological analyze
         return send_input(morpho_analyzer, self._format_sentence(sentence) + '\n').decode('utf-8')
 
     def morpho_sentences(self, sentences):
-        morpho_analyzer, _, _ = self._start_processes(process_to_start=['morpho'])
+        morpho_analyzer = self._start_processes(morpho=True)[0]
 
         joined_sentences = "\n".join([self._format_sentence(sentence) for sentence in sentences])
         
@@ -102,7 +100,7 @@ class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
 
 
     def tag_sentence(self, sentence):
-        morpho_analyzer, pos_tagger, _  = self._start_processes(process_to_start=['morpho', 'pos'])
+        morpho_analyzer, pos_tagger = self._start_processes(morpho=True, pos=True)
 
         # do morphological analyze
         morpho_form = send_input(morpho_analyzer, self._format_sentence(sentence) + "\n")
@@ -114,7 +112,7 @@ class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
         if type(sentences) is not list:
             raise ValueError("sentences must be given as a list object")
 
-        morpho_analyzer, pos_tagger, _ = self._start_processes(process_to_start=['morpho', 'pos'])
+        morpho_analyzer, pos_tagger = self._start_processes(morpho=True, pos=True)
 
         joined_sentences = "\n".join([self._format_sentence(sentence) for sentence in sentences])
         
@@ -126,7 +124,7 @@ class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
 
 
     def parse_sentence(self, sentence):
-        morpho_analyzer, pos_tagger, dependency_parser = self._start_processes()
+        morpho_analyzer, pos_tagger, dependency_parser = self._start_processes(morpho=True, pos=True, dependency=True)
 
         # do morphological analyze
         morpho_form = send_input(morpho_analyzer, self._format_sentence(sentence) + "\n")
@@ -141,7 +139,7 @@ class SyntaxNetWrapperSubprocess(AbstractSyntaxNetWrapper):
         if type(sentences) is not list:
             raise ValueError("sentences must be given as a list object")
 
-        morpho_analyzer, pos_tagger, dependency_parser = self._start_processes()
+        morpho_analyzer, pos_tagger, dependency_parser = self._start_processes(morpho=True, pos=True, dependency=True)
 
         joined_sentences = "\n".join([self._format_sentence(sentence) for sentence in sentences])
         
