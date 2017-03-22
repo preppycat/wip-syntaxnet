@@ -1,7 +1,6 @@
 # coding: utf-8
 
 # import common libs
-import os.path as path
 import requests
 from collections import OrderedDict
 

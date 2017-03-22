@@ -1,11 +1,11 @@
-# coding:utf8
+# coding: utf8
 
-import os.path as path
 import random, string
 
 from syntaxnet_wrapper.abstract_wrapper import AbstractSyntaxNetWrapper
 from syntaxnet_wrapper.parser_eval import SyntaxNetConfig, SyntaxNetProcess, configure_stdout
 from syntaxnet_wrapper import *
+
 
 class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
     """

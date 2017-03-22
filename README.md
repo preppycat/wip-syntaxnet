@@ -26,12 +26,7 @@ syntaxnet:
   MODEL: syntaxnet/models/parsey_universal
 
 (virtualenv)/syntaxnet-wrapper$ python -m unittest discover syntaxnet_wrapper
-....
-----------------------------------------------------------------------
-Ran 4 tests in 56.793s
-
-OK
-(virtualenv)/syntaxnet-wrapper$ pip install -e .
+(virtualenv)/syntaxnet-wrapper$ pip install .
 ```
 You should be able to use the wrapper from now
 

@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 
 from unittest2 import TestCase
-from collections import OrderedDict
 
 from syntaxnet_wrapper.wrapper import *
+
 
 class TestWrapper(TestCase):
 
