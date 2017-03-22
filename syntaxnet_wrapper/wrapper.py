@@ -30,10 +30,10 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
             hidden_layer_sizes=[64],
             batch_size=1024,
             slim_model=True,
-            custom_file='/tmp/morpher.tmp', # Need to be hardcoded, dependant with custom context.pbtxt
+            custom_file='/tmp/morpher.tmp',  # Need to be hardcoded, dependant with custom context.pbtxt
             # add random string to variable scope to have unique one. Allow instanciate several SyntaxNetWrapper
             variable_scope='morpher' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)),
-            graph_builder_ = 'structured'
+            graph_builder_='structured',
         )
         self._morpher_process = SyntaxNetProcess(morpher_config)
 
@@ -47,10 +47,10 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
             hidden_layer_sizes=[64],
             batch_size=1024,
             slim_model=True,
-            custom_file='/tmp/tagger.tmp', # Need to be hardcoded, dependant with custom context.pbtxt
+            custom_file='/tmp/tagger.tmp',  # Need to be hardcoded, dependant with custom context.pbtxt
             # add random string to variable scope to have unique one. Allow instanciate several SyntaxNetWrapper
             variable_scope='tagger' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)),
-            graph_builder_ = 'structured'
+            graph_builder_='structured',
         )
         self._tagger_process = SyntaxNetProcess(tagger_config)
 
@@ -64,10 +64,10 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
             hidden_layer_sizes=[512, 512],
             batch_size=1024,
             slim_model=True,
-            custom_file='/tmp/parser.tmp', # Need to be hardcoded, dependant with custom context.pbtxt
+            custom_file='/tmp/parser.tmp',  # Need to be hardcoded, dependant with custom context.pbtxt
             # add random string to variable scope to have unique one. Allow instanciate several SyntaxNetWrapper
             variable_scope='parser' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)),
-            graph_builder_ = 'structured'
+            graph_builder_='structured',
         )
 
         self._parser_process = SyntaxNetProcess(parser_config)
@@ -84,14 +84,14 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
 
         joined_sentences = '\n'.join([self._format_sentence(sentence) for sentence in sentences])
 
-        # do morpgological analyze
+        # do morphological analyze
         result = self._morpher_process.parse(joined_sentences + "\n")
         return result.decode('utf-8')
 
 
     def tag_sentence(self, sentence):
 
-        # do morpgological analyze
+        # do morphological analyze
         morpho_form = self._morpher_process.parse(sentence)
 
         # do pos tagging
@@ -105,7 +105,7 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
 
         joined_sentences = '\n'.join([self._format_sentence(sentence) for sentence in sentences])
 
-        # do morpgological analyze
+        # do morphological analyze
         morpho_form = self._morpher_process.parse(joined_sentences + '\n')
 
         # do pos tagging
@@ -114,7 +114,7 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
 
 
     def parse_sentence(self, sentence):
-        # do morpgological analyze
+        # do morphological analyze
         morpho_form = self._morpher_process.parse(sentence)
 
         # do pos tagging
@@ -131,7 +131,7 @@ class SyntaxNetWrapper(AbstractSyntaxNetWrapper):
 
         joined_sentences = '\n'.join([self._format_sentence(sentence) for sentence in sentences])
 
-        # do morpgological analyze
+        # do morphological analyze
         morpho_form = self._morpher_process.parse(joined_sentences + "\n")
 
         # do pos tagging
