@@ -9,12 +9,12 @@
 
 import os, sys
 import os.path as path
-import time
 
 
 ################################################################################
 # Make importable module from syntaxnet path
 from syntaxnet_wrapper import root_dir, context_path
+
 
 def CreatePythonPathEntries(python_imports, module_space):
     parts = python_imports.split(':');
@@ -43,11 +43,9 @@ import tempfile
 import tensorflow as tf
 
 from tensorflow.python.platform import gfile
-from tensorflow.python.platform import tf_logging as logging
 
 from google.protobuf import text_format
 
-from syntaxnet import sentence_pb2
 from syntaxnet.ops import gen_parser_ops
 from syntaxnet import task_spec_pb2
 
@@ -56,16 +54,16 @@ from syntaxnet import structured_graph_builder
 
 
 def RewriteContext(task_context, resource_dir):
-  context = task_spec_pb2.TaskSpec()
-  with gfile.FastGFile(task_context) as fin:
-    text_format.Merge(fin.read(), context)
-  for resource in context.input:
-    for part in resource.part:
-      if part.file_pattern != '-':
-        part.file_pattern = os.path.join(resource_dir, part.file_pattern)
-  with tempfile.NamedTemporaryFile(delete=False) as fout:
-    fout.write(str(context))
-    return fout.name
+    context = task_spec_pb2.TaskSpec()
+    with gfile.FastGFile(task_context) as fin:
+        text_format.Merge(fin.read(), context)
+    for resource in context.input:
+        for part in resource.part:
+            if part.file_pattern != '-':
+                part.file_pattern = os.path.join(resource_dir, part.file_pattern)
+    with tempfile.NamedTemporaryFile(delete=False) as fout:
+        fout.write(str(context))
+        return fout.name
 
 
 class SyntaxNetConfig:

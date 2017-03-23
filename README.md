@@ -6,7 +6,7 @@ The wrapper allows generic use of SyntaxNet in python. It provides interfaces fo
 
 The wrapper does not intend to make any assumptions on the use of SyntaxNet, that's why it provides a simple interface and the raw output as default.
 
-Disclaimer : Has been inspired from other [wrapper](https://github.com/JoshData/parsey-mcparseface-server) but we did not want a server based wrapper.
+Disclaimer : Has been inspired from another [wrapper](https://github.com/JoshData/parsey-mcparseface-server) but we did not want a server based wrapper.
 
 ## Installation
 
@@ -35,8 +35,8 @@ You should be able to use the wrapper from now
 **Two mode**
 
 You can use the wrapper in two modes, embodied in two different classes with the same interface
-* `SyntaxNetWrapperSubprocess`, a python implementation of `demo.sh`shell script provided in SyntaxNet. Starts new subprocesses at each call.
-* `SyntaxNetWrapper`, using wrapper's syntaxnet python implementation. Have the advantage to be faster and more memory efficient than the version with subprocesses. However, we are experience some trouble with it. See [Well-known issues]()
+* `SyntaxNetWrapperSubprocess`, a python implementation of `demo.sh` shell script provided in SyntaxNet. It starts new subprocesses at each call.
+* `SyntaxNetWrapper`, using wrapper's syntaxnet python implementation. Have the advantage to be faster and more memory efficient than the version with subprocesses. However, we are experience some trouble with it. See [Well-known issues](https://github.com/short-edition/syntaxnet-wrapper/tree/develop#well-known-issues)
 
 **The interface**
 
@@ -55,10 +55,10 @@ The interface is the same for both classes :
 **Example**
 
 ```python
->>>from syntaxnet_wrapper import SyntaxNetWrapper, SyntaxNetWrapperSubprocess
->>>sn_wrapper = SyntaxNetWrapper()
->>>dependency_output = sn_wrapper.parse_sentence(u"This is a test sentence")
->>>print dependency_output
+>>> from syntaxnet_wrapper import SyntaxNetWrapper, SyntaxNetWrapperSubprocess
+>>> sn_wrapper = SyntaxNetWrapper()
+>>> dependency_output = sn_wrapper.parse_sentence(u"This is a test sentence")
+>>> print dependency_output
  u'g1\tCet\t_\tDET\t_\tGender=Fem|Number=Sing|fPOS=DET++\t2\tdet\t_\t_\n2\tphrase\t_\tNOUN\t_\tGender=Fem|Number=Sing|fPOS=NOUN++\t5\tnsubj\t_\t_\n3\test\t_\tVERB\t_\tMood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|fPOS=VERB++\t5\tcop\t_\t_\n4\tun\t_\tDET\t_\tDefinite=Ind|Gender=Masc|Number=Sing|PronType=Dem|fPOS=DET++\t5\tdet\t_\t_\n5\ttest\t_\tNOUN\t_\tGender=Masc|Number=Sing|fPOS=NOUN++\t0\tROOT\t_\t_\n\n'
 ```
 

@@ -2,9 +2,8 @@
 
 # import common libs
 import requests
-from collections import OrderedDict
-
 import zipfile
+from collections import OrderedDict
 
 from syntaxnet_wrapper import *
 
@@ -26,7 +25,7 @@ class AbstractSyntaxNetWrapper(object):
 
     def _load_model(self):
         print "Load model %s" %self._language
-        response = requests.get('http://download.tensorflow.org/models/parsey_universal/%s.zip' %self._language)
+        response = requests.get('http://download.tensorflow.org/models/parsey_universal/%s.zip' % self._language)
         if not response.ok:
             raise Exception('Error during load of model : %s' %response.status_code)
 
