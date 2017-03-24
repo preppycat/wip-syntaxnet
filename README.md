@@ -57,9 +57,9 @@ The interface is the same for both classes :
 ```python
 >>> from syntaxnet_wrapper import SyntaxNetWrapper, SyntaxNetWrapperSubprocess
 >>> sn_wrapper = SyntaxNetWrapper()
->>> dependency_output = sn_wrapper.parse_sentence(u"This is a test sentence")
+>>> dependency_output = sn_wrapper.parse_sentence(u"Bob brought a pizza to Alice")
 >>> print dependency_output
- u'g1\tCet\t_\tDET\t_\tGender=Fem|Number=Sing|fPOS=DET++\t2\tdet\t_\t_\n2\tphrase\t_\tNOUN\t_\tGender=Fem|Number=Sing|fPOS=NOUN++\t5\tnsubj\t_\t_\n3\test\t_\tVERB\t_\tMood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|fPOS=VERB++\t5\tcop\t_\t_\n4\tun\t_\tDET\t_\tDefinite=Ind|Gender=Masc|Number=Sing|PronType=Dem|fPOS=DET++\t5\tdet\t_\t_\n5\ttest\t_\tNOUN\t_\tGender=Masc|Number=Sing|fPOS=NOUN++\t0\tROOT\t_\t_\n\n'
+u'1\tBob\t_\tPROPN\tNNP\tNumber=Sing|fPOS=PROPN++NNP\t2\tnsubj\t_\t_\n2\tbrought\t_\tVERB\tVBD\tMood=Ind|Tense=Past|VerbForm=Fin|fPOS=VERB++VBD\t0\tROOT\t_\t_\n3\ta\t_\tDET\tDT\tDefinite=Ind|PronType=Art|fPOS=DET++DT\t4\tdet\t_\t_\n4\tpizza\t_\tNOUN\tNN\tNumber=Sing|fPOS=NOUN++NN\t2\tdobj\t_\t_\n5\tto\t_\tADP\tIN\tfPOS=ADP++IN\t6\tcase\t_\t_\n6\tAlice\t_\tPROPN\tNNP\tNumber=Sing|fPOS=PROPN++NNP\t4\tnmod\t_\t_\n\n'
 ```
 
 ## Well-known issues
