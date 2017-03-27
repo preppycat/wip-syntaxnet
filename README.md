@@ -1,9 +1,19 @@
-# Wrapper SyntaxNet
+# SyntaxNet Wrapper
 
-Wrapper qui permet l'utilisation de SyntaxNet en python pour avoir l'arbre syntaxique de dépendence d'une phrase. Le wrapper gère le Français.
-Très fortement inspiré de https://github.com/JoshData/parsey-mcparseface-server
+*A lightweight SyntaxNet wrapper*
 
-## Installation du wrapper syntaxnet
+The wrapper allows generic use of SyntaxNet in python. It provides interfaces for morphological analyse, pos tagging and dependency resolution along with optional formatting tool.
+
+The wrapper does not intend to make any assumptions on the use of SyntaxNet, that's why it provides a simple interface and the raw output as default.
+
+Disclaimer : Has been inspired from another [wrapper](https://github.com/JoshData/parsey-mcparseface-server) but we did not want a server based wrapper.
+
+## Installation
+
+We assume here that you have SyntaxNet installed and working properly on your workstation. If not, please refer to [SyntaxNet official page](https://github.com/tensorflow/models/tree/master/syntaxnet)
+
+The wrapper has been tester on Ubuntu 14.04 Trusty and 16.04 Xenial.
+
 ```bash
 (virtualenv)$ git clone https://github.com/short-edition/syntaxnet-wrapper.git
 (virtualenv)$ cd syntaxnet-wrapper
@@ -16,179 +26,50 @@ syntaxnet:
   MODEL: syntaxnet/models/parsey_universal
 
 (virtualenv)/syntaxnet-wrapper$ python -m unittest discover syntaxnet_wrapper
-....
-----------------------------------------------------------------------
-Ran 4 tests in 56.793s
+(virtualenv)/syntaxnet-wrapper$ pip install .
+```
+You should be able to use the wrapper from now
 
-OK
+## How to use this wrapper
 
-(virtualenv) /syntaxnet-wrapper$ echo "La fille descend dans la rue" | python syntaxnet_wrapper/wrapper.py
-OrderedDict([(u'ROOT', [OrderedDict([('index', 3), ('token', u'descend'), ('label', u'VERB'), ('pos', u'_'), ('tree', OrderedDict([(u'nsubj', [OrderedDict([('index', 2), ('token', u'fille'), ('label', u'NOUN'), ('pos', u'_'), ('tree', OrderedDict([(u'det', [OrderedDict([('index', 1), ('token', u'La'), ('label', u'DET'), ('pos', u'_')])])]))])]), (u'nmod', [OrderedDict([('index', 6), ('token', u'rue'), ('label', u'NOUN'), ('pos', u'_'), ('tree', OrderedDict([(u'case', [OrderedDict([('index', 4), ('token', u'dans'), ('label', u'ADP'), ('pos', u'_')])]), (u'det', [OrderedDict([('index', 5), ('token', u'la'), ('label', u'DET'), ('pos', u'_')])])]))])])]))])])])
+**Two mode**
+
+You can use the wrapper in two modes, embodied in two different classes with the same interface
+* `SyntaxNetWrapperSubprocess`, a python implementation of `demo.sh` shell script provided in SyntaxNet. It starts new subprocesses at each call.
+* `SyntaxNetWrapper`, using wrapper's syntaxnet python implementation. Have the advantage to be faster and more memory efficient than the version with subprocesses. However, we are experience some trouble with it. See [Well-known issues](https://github.com/short-edition/syntaxnet-wrapper/tree/develop#well-known-issues)
+
+**The interface**
+
+The wrapper is expecting unicode text compatible with utf-8 format.
+The interface is the same for both classes :
+* `morpho_sentence`, make morphological analyse for a single sentence
+* `morpho_sentences`, make morphological analyse for a sentences list
+* `tag_sentence`, make pos tagging for a single sentence
+* `tag_sentences`, make pos tagging for a sentences list
+* `parse_sentence`, make dependency parsing for a single sentence
+* `parse_sentences`, make dependency parsing for a sentences list
+
+* `transform_morpho`, `transform_tag` and `transform_dependency` format the outputs in a more readable form. Deleting unfilled field.
+
+
+**Example**
+
+```python
+>>> from syntaxnet_wrapper import SyntaxNetWrapper, SyntaxNetWrapperSubprocess
+>>> sn_wrapper = SyntaxNetWrapper()
+>>> dependency_output = sn_wrapper.parse_sentence(u"Bob brought a pizza to Alice")
+>>> print dependency_output
+u'1\tBob\t_\tPROPN\tNNP\tNumber=Sing|fPOS=PROPN++NNP\t2\tnsubj\t_\t_\n2\tbrought\t_\tVERB\tVBD\tMood=Ind|Tense=Past|VerbForm=Fin|fPOS=VERB++VBD\t0\tROOT\t_\t_\n3\ta\t_\tDET\tDT\tDefinite=Ind|PronType=Art|fPOS=DET++DT\t4\tdet\t_\t_\n4\tpizza\t_\tNOUN\tNN\tNumber=Sing|fPOS=NOUN++NN\t2\tdobj\t_\t_\n5\tto\t_\tADP\tIN\tfPOS=ADP++IN\t6\tcase\t_\t_\n6\tAlice\t_\tPROPN\tNNP\tNumber=Sing|fPOS=PROPN++NNP\t4\tnmod\t_\t_\n\n'
 ```
 
-## Utilisation du wrapper
+## Well-known issues
 
-**Exemple d'utilisation**
+The wrapper seems to lead on `stack smashing` error with some SyntaxNet installation, we do not know the reason. In this case, you can use the `SyntaxNetSubprocess` which is working fine
 
-`echo "Une fille descend la rue dans sa voiture" | python wrapper.py`
+We are aware of the dirty logging with non-subprocess version. We are currently investigating.
 
-**API**
+## Use of different language
 
-La package met à disposition deux fonctions principales, étant `parse_sentence` et `parse_sentences`. Si plusieurs sentences sont à parser d'un coup, il est important d'utiliser `parse_sentences`. En effet, le processus SyntaxNet s'arrête à chaque analyse, que ce soit 1 ou 10 phrases. Il faut donc l'utiliser au mieux. Le lancement des process nécessaires est long et couteux en ressources.
+The wrapper use by default english model but you can use every ["Parsey Universal"](https://github.com/tensorflow/models/blob/master/syntaxnet/g3doc/universal.md) released by Google. You just need to pass the name of the model as a constructor's argument. The wrapper will then automatically download the model and use it.
 
-
-## Installation de SyntaxNet
-
-### Pré-requis
-
-Guide d'installation officiel :
-https://github.com/tensorflow/models/tree/master/syntaxnet#installation
-
-Pré-requis
-  - Version java 8
-```bash
-$ java -version
-java version "1.8.0_101"
-Java(TM) SE Runtime Environment (build 1.8.0_101-b13)
-Java HotSpot(TM) 64-Bit Server VM (build 25.101-b13, mixed mode)
-```
-  - python 2.7
-```bash
-$ python -V
-Python 2.7.13
-```
-
-  - gcc 4.8
-```bash
-$ gcc -v
-gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3)
-```
-  - pip
-```bash
-$ pip -V
-pip 1.5.4 from /usr/lib/python2.7/dist-packages (python 2.7)
-```
-  - bazel 3.0.0 ou 3.0.1
-```bash
-$ bazel version
-Build label: 0.3.1
-Build target: bazel-out/local-fastbuild/bin/src/main/java/com/google/devtools/build/lib/bazel/BazelServer_deploy.jar
-Build time: Fri Jul 29 09:09:52 2016 (1469783392)
-Build timestamp: 1469783392
-Build timestamp as int: 1469783392
-```
-  - swig
-```bash
-$ swig -version
-
-SWIG Version 2.0.11
-
-Compiled with g++ [x86_64-unknown-linux-gnu]
-
-Configured options: +pcre
-
-Please see http://www.swig.org for reporting bugs and further information
-```
-  - protocol buffer
-```
-(virtualenv)$ pip freeze | grep protobuf
-protobuf==3.0.0b2
-```
-  - package python
-```bash
-(virtualenv)$ pip freeze | grep asciitree
-(virtualenv)$ pip freeze | grep numpy
-(virtualenv)$ pip freeze | grep mock
-```
-
-### Installation des pré-requis si besoin
-
-- pip
-  
-        $ sudo apt-get install python-pip
-
-- bazel
-  
-  Installation Linux :
-  
-      # On s'assure que bazel n'est pas présent sur le système
-      $ sudo apt-get purge bazel
-      $ sudo apt-get autoremove
-
-      # Installation de bazel depuis les sources (les repos installent une version trop récente)
-      $ wget https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel_0.4.3-linux-x86_64.deb
-      $ dpkg -i bazel_0.4.3-linux-x86_64.deb
-      $ bazel version
-      Extracting Bazel installation...
-      Build label: 0.4.3
-      Build target: bazel-out/local-fastbuild/bin/src/main/java/com/google/devtools/build/lib/bazel/BazelServer_deploy.jar
-      Build time: Fri Jul 29 09:09:52 2016 (1469783392)
-      Build timestamp: 1469783392
-      Build timestamp as int: 1469783392
-
-  Installation Mac :
-
-        $ wget https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel-0.4.3-installer-darwin-x86_64.sh
-        $ bash bazel*.sh --user
-        $ bazel version
-
-- swig
-  
-
-        $ sudo apt-get install swig
-
-
-- protocol buffers
-    
-        (virtualenv)$ pip install -U protobuf==3.0.0b2
-
-- package python
-
-        (virtualenv)$ pip install asciitree
-        (virtualenv)$ pip install numpy
-        (virtualenv)$ pip install mock
-
-### Installation et compilation de syntaxnet
-```bash
-(virtualenv)$ git clone --recursive https://github.com/tensorflow/models.git tensorflow_models
-(virtualenv)$ cd tensorflow_models/syntaxnet/tensorflow
-(virtualenv)./tensorflow_models/syntaxnet/tensorflow$ ./configure
-~/tensorflow_models/syntaxnet/tensorflow ~/tensorflow_models/syntaxnet/tensorflow
-Please specify the location of python. [Default is /home/lerni/venv_preddy/bin/python]:
-Do you wish to build TensorFlow with Google Cloud Platform support? [y/N]
-No Google Cloud Platform support will be enabled for TensorFlow
-Do you wish to build TensorFlow with Hadoop File System support? [y/N]
-No Hadoop File System support will be enabled for TensorFlow
-Found possible Python library paths:
-  /home/lerni/venv_preddy/lib/python2.7/site-packages
-Please input the desired Python library path to use. Default is [/home/lerni/venv_preddy/lib/python2.7/site-packages]
-
-/home/lerni/venv_preddy/lib/python2.7/site-packages
-Do you wish to build TensorFlow with GPU support? [y/N]
-No GPU support will be enabled for TensorFlow
-Configuration finished
-Extracting Bazel installation...
-
-....Cloning...cleaning.... and stuff ....
-
-INFO: All external dependencies fetched successfully.
-
-(virtualenv)./tensorflow_models/syntaxnet/tensorflow$ cd ../
-(virtualenv)./tensorflow_models/syntaxnet$ bazel test syntaxnet/... util/utf8/... --verbose_failures --local_resources 2048,2.0,1.0 -j 1
-
-... Loading .... cleaning ... and compiling.... prone to warning which are normal .... might take a while ... (25 minutes on my i3 ubuntu 16)
-```
-
-#### Problème connu
-
-  - Problème de droit
-```bash
-gcc unrecognized option -h ...
-```
-
-### Utilisation de différente langue
-
-Le wrapper utilise par default l'anglais. Il faut instancier le wrapper avec le nom de langue désiré : 
-`SyntaxNetWrapper(language='French')`, le nom de la langue doit correspondre à un modèle possible de SyntaxNet.
-
-Le wrapper se charge de télécharger le modèle et de le dézipper pour ensuite l'utiliser.
+`>>> sn_wrapper = SyntaxNetWrapper(language='French')`
