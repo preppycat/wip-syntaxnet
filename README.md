@@ -55,7 +55,7 @@ The interface is the same for both classes :
 **Example**
 
 ```python
->>> from syntaxnet_wrapper import SyntaxNetWrapper, SyntaxNetWrapperSubprocess
+>>> from syntaxnet_wrapper.wrapper import SyntaxNetWrapper
 >>> sn_wrapper = SyntaxNetWrapper()
 >>> dependency_output = sn_wrapper.parse_sentence(u"Bob brought a pizza to Alice")
 >>> print dependency_output
