@@ -3,9 +3,11 @@
 # import common libs
 import requests
 import zipfile
-from collections import OrderedDict
 
 from syntaxnet_wrapper import *
+from syntaxnet_wrapper.graph.vertice import Vertice
+from syntaxnet_wrapper.graph.edge import Edge
+from syntaxnet_wrapper.graph.graph import Graph
 
 
 class AbstractSyntaxNetWrapper(object):
@@ -43,7 +45,7 @@ class AbstractSyntaxNetWrapper(object):
     def _split_tokens(self, parse, fields_to_del=['lemma', 'feats', 'enhanced_dependency', 'misc']):
         # format the result following ConLL convention http://universaldependencies.org/format.html
         def format_token(line):
-            x = OrderedDict(zip(
+            x = dict(zip(
                 ['index', 'token', 'lemma', 'label', 'pos', 'feats', 'parent', 'relation', 'enhanced_dependency', 'misc'],
                 line.split('\t')
             ))
@@ -106,12 +108,27 @@ class AbstractSyntaxNetWrapper(object):
     def transform_dependency(self, to_parse, sentence):
         # make a tree from dependency parsing
         to_parse = self._split_tokens(to_parse)
-        tokens = {token['index']: token for token in to_parse}
-        tokens[0] = OrderedDict([("sentence", sentence)])
+        for token in to_parse:
+            if token['relation'] == 'ROOT':
+                root_token = token.copy()
+                break
+
+        root_index = root_token.pop('index')
+        root = Vertice(root_index, root_token)
+        g = Graph(root)
 
         for token in to_parse:
-            tokens[token['parent']].setdefault('tree', OrderedDict()).setdefault(token['relation'], []).append(token)
-            del token['parent']
-            del token['relation']
+            if token['relation'] != 'ROOT':
+                token_tmp = token.copy()
+                index = token_tmp.pop('index')
+                v = Vertice(index, token_tmp)
+                g.add_vertice(v)
 
-        return tokens[0]
+        for token in to_parse:
+            if token['parent'] != 0:  # zero is the mark of not having parent, for root node
+                parent_v = g.get_vertice(token['parent'])
+                v = g.get_vertice(token['index'])
+                e = Edge('{}_{}'.format(parent_v.index, token['index']), parent_v, v, {'relation': token['relation']})
+                g.add_edge(e)
+
+        return g
