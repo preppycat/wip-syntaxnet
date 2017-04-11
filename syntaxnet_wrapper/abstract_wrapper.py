@@ -105,14 +105,18 @@ class AbstractSyntaxNetWrapper(object):
         raise NotImplementedError("This method is not implemented")
 
 
-    def transform_dependency(self, to_parse, sentence):
+    def transform_dependency(self, to_parse):
         # make a tree from dependency parsing
+	if not to_parse:
+            return
+
         to_parse = self._split_tokens(to_parse)
+
         for token in to_parse:
             if token['relation'] == 'ROOT':
                 root_token = token.copy()
                 break
-
+	
         root_index = root_token.pop('index')
         root = Vertice(root_index, root_token)
         g = Graph(root)
