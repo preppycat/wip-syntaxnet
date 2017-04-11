@@ -42,7 +42,7 @@ class AbstractSyntaxNetWrapper(object):
         return model_file
 
 
-    def _split_tokens(self, parse, fields_to_del=['lemma', 'feats', 'enhanced_dependency', 'misc']):
+    def _split_tokens(self, parse, fields_to_del=['lemma', 'enhanced_dependency', 'misc']):
         # format the result following ConLL convention http://universaldependencies.org/format.html
         def format_token(line):
             x = dict(zip(
