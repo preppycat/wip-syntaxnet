@@ -112,21 +112,13 @@ class AbstractSyntaxNetWrapper(object):
 
         to_parse = self._split_tokens(to_parse)
 
-        for token in to_parse:
-            if token['relation'] == 'ROOT':
-                root_token = token.copy()
-                break
-	
-        root_index = root_token.pop('index')
-        root = Vertice(root_index, root_token)
-        g = Graph(root)
+        g = Graph()
 
         for token in to_parse:
-            if token['relation'] != 'ROOT':
-                token_tmp = token.copy()
-                index = token_tmp.pop('index')
-                v = Vertice(index, token_tmp)
-                g.add_vertice(v)
+            token_tmp = token.copy()
+            index = token_tmp.pop('index')
+	    v = Vertice(index, token_tmp)
+            g.add_vertice(v)
 
         for token in to_parse:
             if token['parent'] != 0:  # zero is the mark of not having parent, for root node

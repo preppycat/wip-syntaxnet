@@ -3,9 +3,8 @@ from syntaxnet_wrapper.graph.edge import Edge
 
 class Graph(object):
 
-    def __init__(self, root):
-        self._root = root
-        self._vertices = [root]
+    def __init__(self):
+        self._vertices = []
         self._edges = []
 
     def get_vertice(self, vertice_index):
