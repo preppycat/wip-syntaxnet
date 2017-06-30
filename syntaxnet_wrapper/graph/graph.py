@@ -14,7 +14,7 @@ class Graph(object):
 
     def add_vertice(self, vertice):
         if self.get_vertice(vertice.index) is not None:
-            raise ValueError('This vertice already exist in graph')
+            raise ValueError('The vertice %s already exist in graph' %vertice.index)
 
         self._vertices.append(vertice)
 

@@ -26,7 +26,7 @@ class AbstractSyntaxNetWrapper(object):
 
 
     def _load_model(self):
-        print "Load model %s" %self._language
+        print "Load model %s" % self._language
         response = requests.get('http://download.tensorflow.org/models/parsey_universal/%s.zip' % self._language)
         if not response.ok:
             raise Exception('Error during load of model : %s' %response.status_code)
@@ -107,7 +107,7 @@ class AbstractSyntaxNetWrapper(object):
 
     def transform_dependency(self, to_parse):
         # make a tree from dependency parsing
-	if not to_parse:
+        if to_parse == u"" or not to_parse:
             return
 
         to_parse = self._split_tokens(to_parse)
@@ -117,7 +117,7 @@ class AbstractSyntaxNetWrapper(object):
         for token in to_parse:
             token_tmp = token.copy()
             index = token_tmp.pop('index')
-	    v = Vertice(index, token_tmp)
+            v = Vertice(index, token_tmp)
             g.add_vertice(v)
 
         for token in to_parse:
