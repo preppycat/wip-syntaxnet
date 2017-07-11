@@ -1,3 +1,8 @@
+
+work in progress utilizing short-edition/syntaxnet-wrapper
+this is their instruction
+----------------------------------
+
 # SyntaxNet Wrapper
 
 *A lightweight SyntaxNet wrapper*

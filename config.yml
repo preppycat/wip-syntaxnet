@@ -1,0 +1,5 @@
+syntaxnet:
+  ROOT_DIR: /home/sunny/syntaxnet-wrapper/syntaxnet_wrapper/models/syntaxnet
+  PARSER_EVAL: bazel-bin/syntaxnet/parser_eval
+  CONTEXT: syntaxnet/models/parsey_universal/context.pbtxt
+  MODEL: syntaxnet/models/parsey_mcparseface
